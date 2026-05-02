@@ -8,9 +8,8 @@ This is a CLI app, not a service. Do not import service-shaped patterns (control
 
 ## Composition
 
-- **Composition root:** `AppBootstrap.CreateAppBuilder(args)` in `ParameterizationExtractor/Program.cs`. Module-level extension methods (`.AddMSSQL()`, `.AddExecutor()`) register parts.
-- **DI container is `System.Composition` (MEF), not `IServiceCollection`.** Anything advertised to the rest of the app uses `[Export]`. Consumers receive parts via `[Import]` / `[ImportMany]`. Constructor injection works the same as with standard DI containers — only the registration mechanism differs.
-- `Microsoft.Extensions.DependencyInjection` is present transitively because `Microsoft.Extensions.Logging` requires it. **Do not** use it to register application parts. See `adr/001-mef-di-container.md`.
+- **Composition root:** `AppBootstrap.CreateAppBuilder(args)` in `ParameterizationExtractor/AppBootstrap.cs`. Returns an `IAppBuilder` (custom thin wrapper around `IServiceCollection`, defined in `ParameterizationExtractor/Common/SqlBuldozerApp.cs`). Module-level extension methods (`.AddMSSQL()`, `.AddExecutor()`) register parts. `IAppBuilder.Build()` delegates to `ServiceCollection.BuildServiceProvider()`.
+- **DI container is `Microsoft.Extensions.DependencyInjection`.** Registrations use `services.AddSingleton<...>()` / `AddTransient<...>()` via the `IAppBuilder.ConfigureServices(...)` extension methods. **Constructor injection only** — no `[Export]` / `[Import]` attributes, no MEF, no plug-in-from-disk discovery. See [adr/006-msdi-container.md](../../adr/006-msdi-container.md).
 
 ---
 

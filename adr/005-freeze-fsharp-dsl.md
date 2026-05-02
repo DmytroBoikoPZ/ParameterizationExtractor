@@ -10,7 +10,7 @@ The F# DSL (`ParameterizationExtractor.DSL` + `ParameterizationExtractor.DSL.Con
 
 The current direction of the project (2026) is to add a desktop UI as the primary operator-facing config surface. Maintaining three config surfaces — XML, F# DSL, UI — is unjustified for a single-author tool with no external user base for the DSL. The DSL has not been extended in years, has no production consumers outside the original author, and its only contributors are also the author.
 
-This decision must be made now, ahead of the .NET 10 / MS.DI / UI work, because each of those touches the F# projects (build pipeline, MEF registrations of the Connector, future UI surface). Freezing them removes ambiguity about how much investment they get.
+This decision must be made now, ahead of the .NET 10 / MS.DI / UI work, because each of those touches the F# projects (build pipeline, DI registrations of the Connector, future UI surface). Freezing them removes ambiguity about how much investment they get.
 
 ## Decision
 

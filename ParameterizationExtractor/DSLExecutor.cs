@@ -13,7 +13,6 @@ using static Quipu.ParameterizationExtractor.DSL.AST;
 
 namespace Quipu.ParameterizationExtractor
 {
-    //[Export(typeof(IExecutor))]
     public class DSLExecutor : IExecutor
     {
         private const int READLINE_BUFFER_SIZE = 1024;

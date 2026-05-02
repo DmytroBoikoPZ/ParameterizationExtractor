@@ -100,7 +100,7 @@ No queues, no HTTP, no message bus, no cache.
 - **Authentication / Authorization:** N/A — local-machine tool. SQL Server connection supports both Windows auth (`Integrated Security=True`, the shipped default) and SQL auth (override the connection string via `appsettings.json` or env vars).
 - **Logging / Observability:** Serilog (Console + File sinks) configured via the `Serilog` section of `appsettings.json`. No metrics, no tracing.
 - **Configuration:** `Microsoft.Extensions.Configuration` (JSON + env), bound in `Program.cs`. The shipped `appsettings.json` is real, committed config — Serilog defaults plus named connection strings under `ConnectionStrings.*` (defaults point at non-prod dev SQL Server instances). CLI args override.
-- **DI container:** `System.Composition` (MEF). Composition root is `AppBootstrap.CreateAppBuilder(args)` in `Program.cs`, with module-level extension methods (`.AddMSSQL()`, `.AddExecutor()`) registering MEF parts. Anything advertised to the rest of the app uses `[Export]`; consumers receive parts via `[Import]` / `[ImportMany]`. `Microsoft.Extensions.DependencyInjection` is present transitively only because the Microsoft.Extensions.Logging stack drags it in — it is **not** the primary container.
+- **DI container:** `Microsoft.Extensions.DependencyInjection`. Composition root is `AppBootstrap.CreateAppBuilder(args)`, which returns an `IAppBuilder` — a thin custom wrapper around `new ServiceCollection()` (see `ParameterizationExtractor/Common/SqlBuldozerApp.cs`). Module-level extension methods `.AddMSSQL()` and `.AddExecutor()` register parts via `services.AddSingleton<...>()` / `AddTransient<...>()`. `IServiceProvider` is built via `ServiceCollection.BuildServiceProvider()` in `AppBuilder.Build()`. Constructor injection only — no attribute-based registration. (ADR-001 originally recorded MEF as the container; that was incorrect. See ADR-006.)
 - **Secret management:** Connection strings live in `appsettings.json` or env vars; no vault / secret store. The committed defaults are non-prod dev DBs by design.
 - **Error handling:** Explicit process exit codes via `ExitCode` enum in `Program.cs`. Fatal errors logged before exit.
 
@@ -116,10 +116,11 @@ The only boundary that exists: CLI process ↔ SQL Server. Connection is configu
 
 See [`adr/readme.md`](../../adr/readme.md) for the full index. The architectural decisions that most directly shape this overview:
 
-- `001-mef-di-container.md` — DI container is `System.Composition` (MEF), not `Microsoft.Extensions.DependencyInjection`.
+- `006-msdi-container.md` — DI container is `Microsoft.Extensions.DependencyInjection` (supersedes ADR-001's incorrect MEF claim).
 - `002-module-layering.md` — Module reference graph is one-way; back-edges forbidden.
 - `003-fsharp-fparsec-dsl.md` — Extraction DSL is implemented in F# / FParsec.
 - `004-t4-sql-generation.md` — SQL `INSERT`/`UPDATE` text is generated via the T4 template `Templates/DefaultTemplate.tt`.
+- `005-freeze-fsharp-dsl.md` — F# DSL is frozen; no new feature work.
 
 ---
 

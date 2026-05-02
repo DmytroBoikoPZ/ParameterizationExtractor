@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 
 namespace Quipu.ParameterizationExtractor
 {
-    //[Export(typeof(IExecutor))]
     public class FromFileExecutor : IExecutor
     {
         private readonly ILogger _log;

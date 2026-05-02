@@ -338,3 +338,7 @@ ASALocalRun/
 
 # BeatPulse healthcheck temp database
 healthchecksdb
+
+# Local configuration with connection strings / secrets — not tracked
+ParameterizationExtractor/appsettings.json
+Tests/appsettings.test.json

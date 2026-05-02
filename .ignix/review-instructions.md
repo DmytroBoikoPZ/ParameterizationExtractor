@@ -46,7 +46,7 @@ If a referenced file is missing, post one note about it and continue with what y
 - This is a developer CLI tool, not a network service — do not flag missing auth, missing input validation, or missing rate limits on code paths.
 - Connection strings committed to `appsettings.json` are intentional non-prod dev defaults — do not flag as a secrets leak.
 - F# files in `ParameterizationExtractor.DSL` compile in a fixed order — do not suggest reordering `<Compile Include>` entries in the fsproj.
-- `System.Composition` (MEF) is the DI container by design — do not suggest migrating to `Microsoft.Extensions.DependencyInjection`.
+- `Microsoft.Extensions.DependencyInjection` is the DI container by design — do not suggest migrating to `System.Composition` (MEF). See `adr/006-msdi-container.md`.
 
 ## When to stay silent
 

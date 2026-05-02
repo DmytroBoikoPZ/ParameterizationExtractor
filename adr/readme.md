@@ -48,8 +48,9 @@ Keep ADRs short. One screen is plenty. Long ADRs become read-once artifacts that
 
 | ADR | Title | Status |
 |-----|-------|--------|
-| [001](001-mef-di-container.md) | DI container is `System.Composition` (MEF), not `Microsoft.Extensions.DependencyInjection` | Accepted |
+| [001](001-mef-di-container.md) | DI container is `System.Composition` (MEF), not `Microsoft.Extensions.DependencyInjection` | Superseded by 006 |
 | [002](002-module-layering.md) | Module layering is one-way; back-edges forbidden | Accepted |
 | [003](003-fsharp-fparsec-dsl.md) | Extraction DSL is implemented in F# / FParsec | Accepted |
 | [004](004-t4-sql-generation.md) | SQL `INSERT`/`UPDATE` text is generated via the T4 template `Templates/DefaultTemplate.tt` | Accepted |
 | [005](005-freeze-fsharp-dsl.md) | Freeze the F# DSL — no new feature work; retire when superseded | Accepted |
+| [006](006-msdi-container.md) | DI container is `Microsoft.Extensions.DependencyInjection` (corrects ADR-001) | Accepted |
