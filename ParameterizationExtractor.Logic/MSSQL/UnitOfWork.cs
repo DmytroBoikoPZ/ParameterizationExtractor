@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Data;
 using System.Threading;
-using System.Data.SqlClient;
+using Microsoft.Data.SqlClient;
 using Quipu.ParameterizationExtractor.Logic.Interfaces;
 
 namespace Quipu.ParameterizationExtractor.Logic.MSSQL

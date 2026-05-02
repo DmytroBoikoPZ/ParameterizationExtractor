@@ -2,9 +2,7 @@
 
 ## Status
 
-Proposed
-
-> Pick one. If superseded, also update the superseding ADR's status note and add a back-reference here.
+Accepted
 
 ## Context
 

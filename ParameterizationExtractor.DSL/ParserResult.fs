@@ -16,13 +16,13 @@
             //    | :? list<Script> -> MapResult result
             //    | _ -> failwith "Parser can not find mapper function"
  
-     type DslOK (result) =
+    type DslOK (result) =
         inherit OK<Package,list<Script>>(result)
-        override this.GetResult = result |> MapResult 
+        override this.GetResult = result |> MapResult
 
-     type CommandOK (result: Command) =
+    type CommandOK (result: Command) =
         inherit OK<Command,Command>(result)
-        override this.GetResult = result 
+        override this.GetResult = result
 
     type Fail(errorMessage: string) =
         inherit ParseResult()

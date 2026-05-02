@@ -1,7 +1,7 @@
 ﻿using Quipu.ParameterizationExtractor.Logic.Interfaces;
 using System;
 using System.Collections.Generic;
-using System.Data.SqlClient;
+using Microsoft.Data.SqlClient;
 using System.Text;
 
 namespace Quipu.ParameterizationExtractor.Logic.MSSQL

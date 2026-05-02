@@ -1,4 +1,4 @@
-﻿using Fclp;
+﻿using CommandLine;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -26,49 +26,42 @@ namespace Quipu.ParameterizationExtractor
 
         }
 
+        [Option('d', "database")]
         public string DBName { get; set; }
+
+        [Option('s', "serverName")]
         public string ServerName { get; set; }
+
+        [Option('p', "package", Required = true, HelpText = "Path to package")]
         public string PathToPackage { get; set; }
+
+        [Option('n', "connectionName", Default = "SourceDB")]
         public string ConnectionName { get; set; }
+
+        [Option('o', "outputFolder", Default = "Output")]
         public string OutputFolder { get; set; }
+
+        [Option('i', "Interactive", Default = false)]
         public bool Interactive { get; set; }
 
         public static IAppArgs GetAppArgs(string[] args)
         {
-            var p = new FluentCommandLineParser<AppArgs>();
+            var result = Parser.Default.ParseArguments<AppArgs>(args);
+            if (result is not Parsed<AppArgs> parsed)
+                throw new Exception("Argument parsing failed.");
 
-            p.Setup<string>(_ => _.ConnectionName)
-                .As('n', "connectionName")
-                .SetDefault("SourceDB");
+            var a = parsed.Value;
 
-            p.Setup<string>(_ => _.PathToPackage)
-                .As('p', "package")
-                .WithDescription("Path to package")
-                .Required();
-
-            p.Setup<string>(_ => _.DBName)
-                .As('d', "database");
-
-            p.Setup<string>(_ => _.ServerName)
-                .As('s', "serverName");
-
-            p.Setup<string>(_ => _.OutputFolder)
-                .As('o', "outputFolder")
-                .SetDefault("Output");
-
-            p.Setup<bool>(_ => _.Interactive)
-                .As('i', "Interactive")
-                .SetDefault(false);            
-
-            p.Parse(args);
-
-            if (string.IsNullOrEmpty(p.Object.ServerName) && !string.IsNullOrEmpty(p.Object.DBName))
+            // Pinned cross-arg validation (messages preserved as-is from the FCLP version).
+            // The messages are flipped — they name the arg the user *did* specify rather than
+            // the missing one. Fixing the wording is a separate follow-up after this feature.
+            if (string.IsNullOrEmpty(a.ServerName) && !string.IsNullOrEmpty(a.DBName))
                 throw new Exception("Please specify DBName!");
 
-            if (string.IsNullOrEmpty(p.Object.DBName) && !string.IsNullOrEmpty(p.Object.ServerName))
+            if (string.IsNullOrEmpty(a.DBName) && !string.IsNullOrEmpty(a.ServerName))
                 throw new Exception("Please specify ServerName!");
 
-            return p.Object;
+            return a;
         }
     }
 

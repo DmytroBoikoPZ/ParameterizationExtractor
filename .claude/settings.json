@@ -6,7 +6,14 @@
       "Read(//c/actual-solutions/docs/final/**)",
       "Bash(git -C \"c:/Projects/context-driven-dev-sample\" rm \"ongoing-tasks/_template/checklist.md\")",
       "Bash(git -C \"c:/Projects/context-driven-dev-sample\" rm -r \"ongoing-tasks/_template/feature\")",
-      "PowerShell(& \"c:/Projects/ParameterizationExtractor/scripts/verify-bootstrap.ps1\" -RepoRoot \"c:/Projects/ParameterizationExtractor\")"
+      "PowerShell(& \"c:/Projects/ParameterizationExtractor/scripts/verify-bootstrap.ps1\" -RepoRoot \"c:/Projects/ParameterizationExtractor\")",
+      "PowerShell(Test-NetConnection 129.212.168.210 -Port 1433 -InformationLevel Quiet)",
+      "PowerShell(Get-Command sqlcmd -ErrorAction SilentlyContinue)",
+      "Bash(dotnet build *)",
+      "Bash(dotnet test *)",
+      "Bash(unset BULDOZER_GOLDEN_MODE)",
+      "Bash(dotnet --list-sdks)",
+      "Bash(dotnet restore *)"
     ]
   }
 }
