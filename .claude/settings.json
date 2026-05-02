@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//c/Projects/agentic-platform/**)",
+      "Read(//c/test-ws/**)",
+      "Read(//c/actual-solutions/docs/final/**)",
+      "Bash(git -C \"c:/Projects/context-driven-dev-sample\" rm \"ongoing-tasks/_template/checklist.md\")",
+      "Bash(git -C \"c:/Projects/context-driven-dev-sample\" rm -r \"ongoing-tasks/_template/feature\")",
+      "PowerShell(& \"c:/Projects/ParameterizationExtractor/scripts/verify-bootstrap.ps1\" -RepoRoot \"c:/Projects/ParameterizationExtractor\")"
+    ]
+  }
+}
