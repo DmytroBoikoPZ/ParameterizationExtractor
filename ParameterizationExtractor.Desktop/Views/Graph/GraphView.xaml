@@ -1,0 +1,188 @@
+<UserControl x:Class="Quipu.ParameterizationExtractor.Desktop.Views.Graph.GraphView"
+             x:ClassModifier="internal"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
+             xmlns:graph="clr-namespace:Quipu.ParameterizationExtractor.Desktop.Views.Graph"
+             xmlns:graphHost="clr-namespace:Quipu.ParameterizationExtractor.Desktop.Controls.GraphHost">
+    <Grid Margin="12">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Toolbar -->
+        <DockPanel Grid.Row="0" LastChildFill="True" Margin="0,0,0,8">
+            <TextBlock DockPanel.Dock="Left"
+                       Text="Focus:"
+                       Margin="0,0,4,0"
+                       VerticalAlignment="Center"
+                       Opacity="0.7"/>
+            <RadioButton DockPanel.Dock="Left"
+                         Content="Seed + 1 hop"
+                         GroupName="FocusMode"
+                         VerticalAlignment="Center"
+                         Margin="0,0,8,0"
+                         IsChecked="{Binding FocusModeChoice, Converter={StaticResource EnumMatchConverter}, ConverterParameter=SeedPlusOneHop}"/>
+            <RadioButton DockPanel.Dock="Left"
+                         Content="Seed + 2 hops"
+                         GroupName="FocusMode"
+                         VerticalAlignment="Center"
+                         Margin="0,0,8,0"
+                         IsChecked="{Binding FocusModeChoice, Converter={StaticResource EnumMatchConverter}, ConverterParameter=SeedPlusTwoHops}"/>
+            <RadioButton DockPanel.Dock="Left"
+                         Content="Whole subgraph"
+                         GroupName="FocusMode"
+                         VerticalAlignment="Center"
+                         Margin="0,0,12,0"
+                         IsChecked="{Binding FocusModeChoice, Converter={StaticResource EnumMatchConverter}, ConverterParameter=WholeSubgraph}"/>
+            <Button DockPanel.Dock="Left"
+                    Content="Reset focus"
+                    Padding="10,4"
+                    Margin="0,0,12,0"
+                    Command="{Binding ResetFocusCommand}"/>
+            <TextBlock DockPanel.Dock="Left"
+                       Text="Layout:"
+                       Margin="0,0,8,0"
+                       VerticalAlignment="Center"
+                       Opacity="0.7"/>
+            <ComboBox DockPanel.Dock="Left"
+                      Width="160"
+                      Margin="0,0,12,0"
+                      SelectedItem="{Binding LayoutChoice, Mode=TwoWay}"
+                      ItemsSource="{Binding Source={x:Static graphHost:GraphLayoutKindValues.All}}"/>
+            <Button DockPanel.Dock="Left"
+                    Content="Refresh"
+                    Padding="10,4"
+                    Margin="0,0,8,0"
+                    Command="{Binding RefreshCommand}"
+                    Visibility="{Binding RefreshCommand.IsRunning, Converter={StaticResource InverseBoolToVis}}"/>
+            <Button DockPanel.Dock="Left"
+                    Content="Cancel"
+                    Padding="10,4"
+                    Margin="0,0,8,0"
+                    Command="{Binding RefreshCancelCommand}"
+                    Visibility="{Binding RefreshCommand.IsRunning, Converter={StaticResource BoolToVis}}"/>
+            <TextBlock Text="{Binding Status}"
+                       VerticalAlignment="Center"
+                       Opacity="0.75"/>
+        </DockPanel>
+
+        <!-- Content + legend -->
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Graph canvas + empty state -->
+            <Grid Grid.Column="0">
+                <graphHost:GraphHostView x:Name="GraphHost"
+                                         VisibleNodes="{Binding VisibleNodes}"
+                                         VisibleEdges="{Binding VisibleEdges}"
+                                         Layout="{Binding LayoutChoice, Mode=TwoWay}"
+                                         SelectedNodeId="{Binding SelectedNodeId, Mode=TwoWay}"
+                                         RightClickedNodeId="{Binding RightClickedNodeId, Mode=TwoWay}">
+                    <graphHost:GraphHostView.ContextMenu>
+                        <ContextMenu>
+                            <MenuItem Header="Exclude"
+                                      Command="{Binding PlacementTarget.DataContext.ExcludeNodeCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                      CommandParameter="{Binding PlacementTarget.DataContext.RightClickedNodeId, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
+                            <MenuItem Header="Include"
+                                      Command="{Binding PlacementTarget.DataContext.IncludeNodeCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                      CommandParameter="{Binding PlacementTarget.DataContext.RightClickedNodeId, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
+                            <MenuItem Header="Reset to Pending"
+                                      Command="{Binding PlacementTarget.DataContext.ResetNodeCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                      CommandParameter="{Binding PlacementTarget.DataContext.RightClickedNodeId, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
+                            <Separator/>
+                            <MenuItem Header="Show on whole graph"
+                                      Command="{Binding PlacementTarget.DataContext.ShowOnWholeGraphCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                      CommandParameter="{Binding PlacementTarget.DataContext.RightClickedNodeId, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
+                        </ContextMenu>
+                    </graphHost:GraphHostView.ContextMenu>
+                </graphHost:GraphHostView>
+
+                <TextBlock Text="No graph yet — open a workspace and add a seed root in the Seed tab."
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center"
+                           Opacity="0.5"
+                           FontStyle="Italic"
+                           IsHitTestVisible="False">
+                    <TextBlock.Style>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding Reachable}" Value="{x:Null}">
+                                    <Setter Property="Visibility" Value="Visible"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
+
+                <mah:ProgressRing IsActive="{Binding RefreshCommand.IsRunning}"
+                                  HorizontalAlignment="Center"
+                                  VerticalAlignment="Center"
+                                  Width="48" Height="48"
+                                  IsHitTestVisible="False"/>
+            </Grid>
+
+            <!-- Legend dock-right -->
+            <Border Grid.Column="1"
+                    Margin="12,0,0,0"
+                    Padding="10"
+                    BorderBrush="#22000000"
+                    BorderThickness="1"
+                    Background="#08000000"
+                    VerticalAlignment="Top">
+                <StackPanel Orientation="Vertical">
+                    <TextBlock Text="Legend" FontWeight="Bold" Margin="0,0,0,6" Opacity="0.8"/>
+                    <StackPanel Orientation="Horizontal" Margin="0,2">
+                        <TextBlock Text="──" Margin="0,0,6,0"/>
+                        <TextBlock Text="traversed FK" Opacity="0.75"/>
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" Margin="0,2">
+                        <TextBlock Text="-→" Margin="0,0,6,0"/>
+                        <TextBlock Text="direction" Opacity="0.75"/>
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" Margin="0,2">
+                        <TextBlock Text="◯" Margin="0,0,6,0"/>
+                        <TextBlock Text="pending decision" Opacity="0.75"/>
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" Margin="0,2">
+                        <TextBlock Text="✓" Margin="0,0,6,0"/>
+                        <TextBlock Text="configured" Opacity="0.75"/>
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" Margin="0,2">
+                        <TextBlock Text="✗" Margin="0,0,6,0"/>
+                        <TextBlock Text="excluded" Opacity="0.75"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <!-- Inspector overlay (slides in from the right when InspectedNode is non-null).
+                 Deviation note: MahApps Flyout requires a MetroWindow host; pragmatic v1 uses
+                 a same-pane Border overlay. Logged in checklist Notes. -->
+            <Border Grid.Column="0" Grid.ColumnSpan="2"
+                    HorizontalAlignment="Right"
+                    Width="380"
+                    Background="{DynamicResource MahApps.Brushes.Window.Background}"
+                    BorderBrush="#33000000"
+                    BorderThickness="1,0,0,0"
+                    Visibility="{Binding InspectorVm, Converter={StaticResource NotNullToVis}}">
+                <DockPanel LastChildFill="True">
+                    <DockPanel DockPanel.Dock="Top" LastChildFill="True"
+                               Background="#11000000" Margin="0">
+                        <TextBlock DockPanel.Dock="Left" Text="Inspector"
+                                   FontWeight="Bold" Margin="12,8" VerticalAlignment="Center"/>
+                        <Button DockPanel.Dock="Right" Content="✕"
+                                Padding="10,4" Margin="0,4,4,4"
+                                Background="Transparent" BorderThickness="0"
+                                Command="{Binding CloseInspectorCommand}"/>
+                    </DockPanel>
+                    <graph:NodeInspectorView DataContext="{Binding InspectorVm}"/>
+                </DockPanel>
+            </Border>
+        </Grid>
+    </Grid>
+</UserControl>

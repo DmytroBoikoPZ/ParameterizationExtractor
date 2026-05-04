@@ -155,6 +155,15 @@ and C.is_computed = 0
             return Tables.First(_ => _.TableName.Equals(tableName, StringComparison.InvariantCultureIgnoreCase));
         }
 
+        /// <summary>
+        /// Resolves a table by (Schema, Name) per ADR-011. Delegates to <see cref="TableResolver.Resolve"/>.
+        /// </summary>
+        public PTableMetadata ResolveTable(string schema, string tableName)
+        {
+            CheckInit();
+            return TableResolver.Resolve(Tables, schema, tableName);
+        }
+
         public async Task Init(CancellationToken cancellationToken)
         {
             _log.InfoFormat("MS SQL source schema init.");
@@ -203,7 +212,11 @@ and C.is_computed = 0
 
                 foreach (DataRow t in metaTables.Result.Rows)
                 {
-                    var pTab = new PTableMetadata() { TableName = t["table_name"].ToString() };
+                    var pTab = new PTableMetadata()
+                    {
+                        TableName = t["table_name"].ToString(),
+                        Schema = t.Table.Columns.Contains("table_schema") ? (t["table_schema"]?.ToString() ?? string.Empty) : string.Empty,
+                    };
 
                     foreach (DataRow c in iList.Where(_ => _["TableName"].ToString().Equals(pTab.TableName, StringComparison.InvariantCultureIgnoreCase)
                                                             && !_globalConfiguration.FieldsToExclude.Any(f => f == _["ColumnName"].ToString())))

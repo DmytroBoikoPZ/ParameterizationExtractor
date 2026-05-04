@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell($a = \\(Get-FileHash \"c:\\\\Projects\\\\ParameterizationExtractor\\\\CLAUDE.md\" -Algorithm SHA256\\).Hash; $b = \\(Get-FileHash \"c:\\\\Projects\\\\ParameterizationExtractor\\\\.github\\\\copilot-instructions.md\" -Algorithm SHA256\\).Hash; if \\($a -eq $b\\) { \"MATCH $a\" } else { \"MISMATCH\" })",
+      "Bash(\"ParameterizationExtractor.Desktop/bin/Debug/net10.0-windows/ParameterizationExtractor.Desktop.exe\" \"examples/sample.bws\")",
+      "PowerShell(Start-Process -FilePath \"ParameterizationExtractor.Desktop\\\\bin\\\\Debug\\\\net10.0-windows\\\\ParameterizationExtractor.Desktop.exe\" -ArgumentList \"examples\\\\sample.bws\")"
+    ]
+  }
+}

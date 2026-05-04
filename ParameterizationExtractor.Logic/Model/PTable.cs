@@ -68,8 +68,16 @@ namespace Quipu.ParameterizationExtractor.Logic.Model
         public IEnumerable<PField> PkFields { get; private set; }
         public bool IsStartingPoint { get; set; }
         public string TableName { get { return _metaData.TableName; } }
+        public string Schema { get { return _metaData.Schema ?? string.Empty; } }
         public PTableMetadata MetaData { get { return _metaData; } }
         public string Source { get; set; }
+
+        /// <summary>
+        /// Schema to emit in generated SQL. Sourced from the operator's <c>TableToExtract.Schema</c>
+        /// (config-side), NOT from the discovered <see cref="Schema"/>. Empty (default) keeps the
+        /// legacy bare-name emission. Set by <c>DependencyBuilder</c> during traversal. See ADR-011.
+        /// </summary>
+        public string EmissionSchema { get; set; } = string.Empty;
         public override bool Equals(object obj)
         {
             var p = obj as PRecord;

@@ -1,0 +1,24 @@
+<UserControl x:Class="Quipu.ParameterizationExtractor.Desktop.Controls.RowsPreviewGrid.RowsPreviewGridView"
+             x:ClassModifier="internal"
+             x:Name="Root"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <DockPanel LastChildFill="True">
+        <Border DockPanel.Dock="Top"
+                x:Name="TruncationBanner"
+                Padding="8,4"
+                Background="#FFFFF4CE"
+                BorderBrush="#FFE0C04C"
+                BorderThickness="0,0,0,1"
+                Visibility="Collapsed">
+            <TextBlock Text="Showing first 200 rows; refine the query to see more."
+                       Foreground="#FF7A5A00" />
+        </Border>
+        <DataGrid x:Name="Grid"
+                  AutoGenerateColumns="False"
+                  IsReadOnly="True"
+                  HeadersVisibility="Column"
+                  GridLinesVisibility="Horizontal"
+                  RowHeaderWidth="0" />
+    </DockPanel>
+</UserControl>

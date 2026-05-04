@@ -1,0 +1,17 @@
+{
+  "scripts": [
+    {
+      "scriptName": "only-parent-from-payment",
+      "rootRecords": [
+        { "tableName": "Payments", "where": "Id = 2488889" }
+      ],
+      "tablesToProcess": [
+        {
+          "tableName": "Payments",
+          "extractStrategy": { "$kind": "OnlyParent" },
+          "sqlBuildStrategy": {}
+        }
+      ]
+    }
+  ]
+}

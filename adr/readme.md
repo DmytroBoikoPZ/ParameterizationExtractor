@@ -54,3 +54,9 @@ Keep ADRs short. One screen is plenty. Long ADRs become read-once artifacts that
 | [004](004-t4-sql-generation.md) | SQL `INSERT`/`UPDATE` text is generated via the T4 template `Templates/DefaultTemplate.tt` | Accepted |
 | [005](005-freeze-fsharp-dsl.md) | Freeze the F# DSL — no new feature work; retire when superseded | Accepted |
 | [006](006-msdi-container.md) | DI container is `Microsoft.Extensions.DependencyInjection` (corrects ADR-001) | Accepted |
+| [007](007-desktop-wpf-stack.md) | Desktop UI stack — WPF on .NET 10 with CommunityToolkit.Mvvm and Generic Host | Accepted |
+| [008](008-desktop-ui-controls.md) | Desktop UI controls — MahApps.Metro chrome, AvalonEdit code editor, no docking lib initially | Accepted |
+| [009](009-workspace-format.md) | Workspace format — JSON via `System.Text.Json`, `$kind` polymorphic discriminator, `.bws` wrapper | Accepted |
+| [010](010-desktop-password-at-rest.md) | Desktop password-at-rest — DPAPI under `DataProtectionScope.CurrentUser` with opt-out checkbox | Accepted |
+| [011](011-engine-schema-awareness.md) | Engine schema-awareness — `Schema` on table-naming model; bare-name lookup throws on ambiguity | Accepted |
+| [012](012-graph-visualisation-library.md) | Graph visualisation library — `AutomaticGraphLayout` 1.1.12 (community Msagl fork); edge-pick events satisfied | Accepted |

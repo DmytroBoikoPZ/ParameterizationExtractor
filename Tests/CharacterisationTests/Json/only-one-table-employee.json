@@ -1,0 +1,17 @@
+{
+  "scripts": [
+    {
+      "scriptName": "only-one-table-employee",
+      "rootRecords": [
+        { "tableName": "Employees", "where": "Id = 1" }
+      ],
+      "tablesToProcess": [
+        {
+          "tableName": "Employees",
+          "extractStrategy": { "$kind": "OnlyOneTable" },
+          "sqlBuildStrategy": {}
+        }
+      ]
+    }
+  ]
+}

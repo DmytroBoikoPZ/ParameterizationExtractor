@@ -6,11 +6,12 @@ namespace Tests.CharacterisationTests.Harness
     public static class SqlNormalizer
     {
         // Header timestamps are emitted on their own line (e.g., "02.05.2026 15:04:05" inside the
-        // /* ... */ banner the engine prepends to every script). Inline data values like
-        // "31.05.2021 20:37:31 +03:00" inside `values(...)` are deliberately not matched — they
-        // are real row content and must be pinned.
+        // /* ... */ banner the engine prepends to every script). The hour can be 1 or 2 digits
+        // depending on the runner's culture (uk-UA / ru-RU long-time patterns drop the leading
+        // zero). Inline data values like "31.05.2021 20:37:31 +03:00" inside `values(...)` are
+        // deliberately not matched — they are real row content and must be pinned.
         private static readonly Regex GeneratedTimestamp =
-            new(@"^\d{2}\.\d{2}\.\d{4} \d{2}:\d{2}:\d{2}$", RegexOptions.Compiled | RegexOptions.Multiline);
+            new(@"^\d{2}\.\d{2}\.\d{4} \d{1,2}:\d{2}:\d{2}$", RegexOptions.Compiled | RegexOptions.Multiline);
 
         private const string TimestampPlaceholder = "__GENERATED_TIMESTAMP__";
 

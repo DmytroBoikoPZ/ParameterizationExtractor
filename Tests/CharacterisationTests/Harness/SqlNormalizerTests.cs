@@ -55,6 +55,16 @@ namespace Tests.CharacterisationTests.Harness
         }
 
         [Test]
+        public void Header_Style_Timestamp_With_Single_Digit_Hour_Is_Masked()
+        {
+            // Cultures like uk-UA / ru-RU drop the leading zero on the hour:
+            // "03.05.2026 9:10:16" rather than "03.05.2026 09:10:16".
+            var input  = "/*\nVersion 1.0.0.0\n03.05.2026 9:10:16\nSource: x\n*/\n";
+            var output = SqlNormalizer.Normalize(input);
+            Assert.That(output, Does.Contain("__GENERATED_TIMESTAMP__"));
+        }
+
+        [Test]
         public void Inline_Data_Timestamp_Inside_Values_Is_Preserved()
         {
             var input  = "values (1, 31.05.2021 20:37:31 +03:00, 'x')\n";

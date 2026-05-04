@@ -1,0 +1,28 @@
+<UserControl x:Class="Quipu.ParameterizationExtractor.Desktop.Controls.TablePicker.TablePickerView"
+             x:ClassModifier="internal"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <DockPanel LastChildFill="True">
+        <Button DockPanel.Dock="Right"
+                Margin="4,0,0,0"
+                Padding="8,2"
+                Content="Refresh"
+                Command="{Binding RefreshCommand}"
+                IsEnabled="{Binding IsLoading, Converter={StaticResource InvertBool}}" />
+        <ComboBox ItemsSource="{Binding Tables}"
+                  SelectedItem="{Binding SelectedTable, Mode=TwoWay}"
+                  IsEditable="True"
+                  IsTextSearchEnabled="True"
+                  TextSearch.TextPath="Name">
+            <ComboBox.ItemTemplate>
+                <DataTemplate>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="{Binding Schema}" Foreground="{DynamicResource MahApps.Brushes.Accent}" />
+                        <TextBlock Text="." />
+                        <TextBlock Text="{Binding Name}" />
+                    </StackPanel>
+                </DataTemplate>
+            </ComboBox.ItemTemplate>
+        </ComboBox>
+    </DockPanel>
+</UserControl>

@@ -236,7 +236,7 @@ foreach (var record in Items.Where(_ => _.IsStartingPoint))
             this.Write("\t--#region ");
             
             #line 357 "C:\vsts\SQL Buldozer\ParameterizationExtractor.Logic\Templates\DefaultTemplate.tt"
-            this.Write(this.ToStringHelper.ToStringWithCulture(record.TableName));
+            this.Write(this.ToStringHelper.ToStringWithCulture(SqlHelper.Qualify(record)));
             
             #line default
             #line hidden
@@ -253,7 +253,7 @@ foreach (var record in Items.Where(_ => _.IsStartingPoint))
             this.Write("\talter table ");
             
             #line 362 "C:\vsts\SQL Buldozer\ParameterizationExtractor.Logic\Templates\DefaultTemplate.tt"
-            this.Write(this.ToStringHelper.ToStringWithCulture(record.TableName));
+            this.Write(this.ToStringHelper.ToStringWithCulture(SqlHelper.Qualify(record)));
             
             #line default
             #line hidden
@@ -273,7 +273,7 @@ foreach (var record in Items.Where(_ => _.IsStartingPoint))
             this.Write("\talter table ");
             
             #line 370 "C:\vsts\SQL Buldozer\ParameterizationExtractor.Logic\Templates\DefaultTemplate.tt"
-            this.Write(this.ToStringHelper.ToStringWithCulture(record.TableName));
+            this.Write(this.ToStringHelper.ToStringWithCulture(SqlHelper.Qualify(record)));
             
             #line default
             #line hidden
@@ -289,7 +289,7 @@ foreach (var record in Items.Where(_ => _.IsStartingPoint))
             this.Write("\t--#endregion ");
             
             #line 374 "C:\vsts\SQL Buldozer\ParameterizationExtractor.Logic\Templates\DefaultTemplate.tt"
-            this.Write(this.ToStringHelper.ToStringWithCulture(record.TableName));
+            this.Write(this.ToStringHelper.ToStringWithCulture(SqlHelper.Qualify(record)));
             
             #line default
             #line hidden
@@ -453,7 +453,7 @@ this.Write("\t\tRAISERROR(\'Record from table ");
         #line hidden
         
         #line 499 "C:\vsts\SQL Buldozer\ParameterizationExtractor.Logic\Templates\DefaultTemplate.tt"
-this.Write(this.ToStringHelper.ToStringWithCulture(parent.PRecord.TableName));
+this.Write(this.ToStringHelper.ToStringWithCulture(SqlHelper.Qualify(parent.PRecord)));
 
         
         #line default
@@ -595,7 +595,7 @@ this.Write("\t\tif not exists(select * from ");
         #line hidden
         
         #line 551 "C:\vsts\SQL Buldozer\ParameterizationExtractor.Logic\Templates\DefaultTemplate.tt"
-this.Write(this.ToStringHelper.ToStringWithCulture(string.Format("{0} where {1}",table.TableName,table.GetUniqueSqlWhere())));
+this.Write(this.ToStringHelper.ToStringWithCulture(string.Format("{0} where {1}",SqlHelper.Qualify(table),table.GetUniqueSqlWhere())));
 
         
         #line default
@@ -686,7 +686,7 @@ this.Write(" \r\n\t\tfrom  ");
         #line hidden
         
         #line 565 "C:\vsts\SQL Buldozer\ParameterizationExtractor.Logic\Templates\DefaultTemplate.tt"
-this.Write(this.ToStringHelper.ToStringWithCulture(parent.TableName));
+this.Write(this.ToStringHelper.ToStringWithCulture(SqlHelper.Qualify(parent)));
 
         
         #line default
@@ -803,7 +803,7 @@ this.Write(" \r\n\tfrom ");
         #line hidden
         
         #line 588 "C:\vsts\SQL Buldozer\ParameterizationExtractor.Logic\Templates\DefaultTemplate.tt"
-this.Write(this.ToStringHelper.ToStringWithCulture(parent.TableName));
+this.Write(this.ToStringHelper.ToStringWithCulture(SqlHelper.Qualify(parent)));
 
         
         #line default
@@ -868,12 +868,12 @@ this.Write(this.ToStringHelper.ToStringWithCulture(parent.GetPKVarName()));
         #line 592 "C:\vsts\SQL Buldozer\ParameterizationExtractor.Logic\Templates\DefaultTemplate.tt"
 this.Write("_data  as varbinary)\r\n\r\n\texec Deleter @TableName = \'");
 
-        
+
         #line default
         #line hidden
-        
+
         #line 594 "C:\vsts\SQL Buldozer\ParameterizationExtractor.Logic\Templates\DefaultTemplate.tt"
-this.Write(this.ToStringHelper.ToStringWithCulture(parent.TableName));
+this.Write(this.ToStringHelper.ToStringWithCulture(SqlHelper.QualifyForDeleter(parent)));
 
         
         #line default
@@ -971,7 +971,7 @@ this.Write("\t\t\t\t    SET IDENTITY_INSERT ");
         #line hidden
         
         #line 612 "C:\vsts\SQL Buldozer\ParameterizationExtractor.Logic\Templates\DefaultTemplate.tt"
-this.Write(this.ToStringHelper.ToStringWithCulture(parent.TableName));
+this.Write(this.ToStringHelper.ToStringWithCulture(SqlHelper.Qualify(parent)));
 
         
         #line default
@@ -986,7 +986,7 @@ this.Write(" ON; \r\n");
         
         #line 613 "C:\vsts\SQL Buldozer\ParameterizationExtractor.Logic\Templates\DefaultTemplate.tt"
 
-								InsertValues(parent,parent.TableName); 
+								InsertValues(parent,SqlHelper.Qualify(parent)); 
 
         
         #line default
@@ -1028,7 +1028,7 @@ this.Write(" \r\n\t\t\t\t\t\t\t\tfrom ");
         #line hidden
         
         #line 617 "C:\vsts\SQL Buldozer\ParameterizationExtractor.Logic\Templates\DefaultTemplate.tt"
-this.Write(this.ToStringHelper.ToStringWithCulture(parent.TableName));
+this.Write(this.ToStringHelper.ToStringWithCulture(SqlHelper.Qualify(parent)));
 
         
         #line default
@@ -1070,7 +1070,7 @@ this.Write(" \r\n\r\n\t\t\t\t\tSET IDENTITY_INSERT ");
         #line hidden
         
         #line 620 "C:\vsts\SQL Buldozer\ParameterizationExtractor.Logic\Templates\DefaultTemplate.tt"
-this.Write(this.ToStringHelper.ToStringWithCulture(parent.TableName));
+this.Write(this.ToStringHelper.ToStringWithCulture(SqlHelper.Qualify(parent)));
 
         
         #line default
@@ -1089,7 +1089,7 @@ this.Write(" OFF; \r\n");
 					    else 
 							{
 
-						InsertValues(fields,parent.TableName);
+						InsertValues(fields,SqlHelper.Qualify(parent));
 
         
         #line default
@@ -1164,7 +1164,7 @@ this.Write(")+1 from ");
         #line hidden
         
         #line 636 "C:\vsts\SQL Buldozer\ParameterizationExtractor.Logic\Templates\DefaultTemplate.tt"
-this.Write(this.ToStringHelper.ToStringWithCulture(parent.TableName));
+this.Write(this.ToStringHelper.ToStringWithCulture(SqlHelper.Qualify(parent)));
 
         
         #line default
@@ -1206,12 +1206,12 @@ this.Write(", 1)\r\n\r\n\t\t");
         #line hidden
         
         #line 640 "C:\vsts\SQL Buldozer\ParameterizationExtractor.Logic\Templates\DefaultTemplate.tt"
-InsertValues(SqlHelper.InjectSqlVariable(fields,parent.GetPKVarName(),parent.PkField.FieldName),parent.TableName);				
+InsertValues(SqlHelper.InjectSqlVariable(fields,parent.GetPKVarName(),parent.PkField.FieldName),SqlHelper.Qualify(parent));				
 					}
 				}
 				else
 				{
-					InsertValues(fields,parent.TableName);
+					InsertValues(fields,SqlHelper.Qualify(parent));
 
         
         #line default
@@ -1268,7 +1268,7 @@ this.Write("\t\t\telse \r\n\t\t\tbegin\r\n\t\t\t\tupdate ");
         #line hidden
         
         #line 656 "C:\vsts\SQL Buldozer\ParameterizationExtractor.Logic\Templates\DefaultTemplate.tt"
-this.Write(this.ToStringHelper.ToStringWithCulture(parent.TableName));
+this.Write(this.ToStringHelper.ToStringWithCulture(SqlHelper.Qualify(parent)));
 
         
         #line default
@@ -1338,7 +1338,7 @@ this.Write(" \r\n\t\t\t\tfrom ");
         #line hidden
         
         #line 661 "C:\vsts\SQL Buldozer\ParameterizationExtractor.Logic\Templates\DefaultTemplate.tt"
-this.Write(this.ToStringHelper.ToStringWithCulture(parent.TableName));
+this.Write(this.ToStringHelper.ToStringWithCulture(SqlHelper.Qualify(parent)));
 
         
         #line default
@@ -1476,7 +1476,7 @@ this.Write(" \r\n\tfrom ");
         #line hidden
         
         #line 692 "C:\vsts\SQL Buldozer\ParameterizationExtractor.Logic\Templates\DefaultTemplate.tt"
-this.Write(this.ToStringHelper.ToStringWithCulture(child.TableName));
+this.Write(this.ToStringHelper.ToStringWithCulture(SqlHelper.Qualify(child)));
 
         
         #line default
@@ -1546,7 +1546,7 @@ this.Write("_data  as varbinary)\r\n\r\n\texec Deleter @TableName = \'");
         #line hidden
         
         #line 698 "C:\vsts\SQL Buldozer\ParameterizationExtractor.Logic\Templates\DefaultTemplate.tt"
-this.Write(this.ToStringHelper.ToStringWithCulture(child.TableName));
+this.Write(this.ToStringHelper.ToStringWithCulture(SqlHelper.QualifyForDeleter(child)));
 
         
         #line default
@@ -1635,7 +1635,7 @@ this.Write("\t\t\tif not exists(select * from ");
         #line hidden
         
         #line 713 "C:\vsts\SQL Buldozer\ParameterizationExtractor.Logic\Templates\DefaultTemplate.tt"
-this.Write(this.ToStringHelper.ToStringWithCulture(string.Format("{0} where {1}",child.TableName,child.GetUniqueSqlWhere())));
+this.Write(this.ToStringHelper.ToStringWithCulture(string.Format("{0} where {1}",SqlHelper.Qualify(child),child.GetUniqueSqlWhere())));
 
         
         #line default
@@ -1697,7 +1697,7 @@ this.Write(")+1 from ");
         #line hidden
         
         #line 723 "C:\vsts\SQL Buldozer\ParameterizationExtractor.Logic\Templates\DefaultTemplate.tt"
-this.Write(this.ToStringHelper.ToStringWithCulture(child.TableName));
+this.Write(this.ToStringHelper.ToStringWithCulture(SqlHelper.Qualify(child)));
 
         
         #line default
@@ -1739,7 +1739,7 @@ this.Write(", 1)\r\n\r\n");
         #line hidden
         
         #line 727 "C:\vsts\SQL Buldozer\ParameterizationExtractor.Logic\Templates\DefaultTemplate.tt"
-InsertValues(SqlHelper.InjectSqlVariable(fields,child.GetPKVarName(),child.PkField.FieldName),child.TableName);
+InsertValues(SqlHelper.InjectSqlVariable(fields,child.GetPKVarName(),child.PkField.FieldName),SqlHelper.Qualify(child));
 		}
 		else if (child.PkField.MetaData.IsIdentity)
 			{
@@ -1758,7 +1758,7 @@ this.Write("\t\t\t\t    SET IDENTITY_INSERT ");
         #line hidden
         
         #line 734 "C:\vsts\SQL Buldozer\ParameterizationExtractor.Logic\Templates\DefaultTemplate.tt"
-this.Write(this.ToStringHelper.ToStringWithCulture(child.TableName));
+this.Write(this.ToStringHelper.ToStringWithCulture(SqlHelper.Qualify(child)));
 
         
         #line default
@@ -1773,7 +1773,7 @@ this.Write(" ON; \r\n");
         
         #line 735 "C:\vsts\SQL Buldozer\ParameterizationExtractor.Logic\Templates\DefaultTemplate.tt"
 
-					InsertValues(child,child.TableName);  
+					InsertValues(child,SqlHelper.Qualify(child));  
 
         
         #line default
@@ -1815,7 +1815,7 @@ this.Write(" \r\n\t\t\t\t\tfrom ");
         #line hidden
         
         #line 739 "C:\vsts\SQL Buldozer\ParameterizationExtractor.Logic\Templates\DefaultTemplate.tt"
-this.Write(this.ToStringHelper.ToStringWithCulture(child.TableName));
+this.Write(this.ToStringHelper.ToStringWithCulture(SqlHelper.Qualify(child)));
 
         
         #line default
@@ -1857,7 +1857,7 @@ this.Write(" \r\n\r\n\t\t\t\t\tSET IDENTITY_INSERT ");
         #line hidden
         
         #line 742 "C:\vsts\SQL Buldozer\ParameterizationExtractor.Logic\Templates\DefaultTemplate.tt"
-this.Write(this.ToStringHelper.ToStringWithCulture(child.TableName));
+this.Write(this.ToStringHelper.ToStringWithCulture(SqlHelper.Qualify(child)));
 
         
         #line default
@@ -1875,7 +1875,7 @@ this.Write(" OFF; \r\n");
 				}
 				else 
 				{
-					InsertValues(fields,child.TableName); 
+					InsertValues(fields,SqlHelper.Qualify(child)); 
 
         
         #line default
@@ -1924,7 +1924,7 @@ this.Write(" = SCOPE_IDENTITY()\r\n");
 			}
 			else
 			{
-				InsertValues(fields,child.TableName);
+				InsertValues(fields,SqlHelper.Qualify(child));
         
         #line default
         #line hidden
@@ -1991,7 +1991,7 @@ this.Write("\t\tbegin\r\n\t\t\tupdate ");
         #line hidden
         
         #line 778 "C:\vsts\SQL Buldozer\ParameterizationExtractor.Logic\Templates\DefaultTemplate.tt"
-this.Write(this.ToStringHelper.ToStringWithCulture(child.TableName));
+this.Write(this.ToStringHelper.ToStringWithCulture(SqlHelper.Qualify(child)));
 
         
         #line default
@@ -2076,7 +2076,7 @@ this.Write(" \r\n\t\t\tfrom ");
         #line hidden
         
         #line 785 "C:\vsts\SQL Buldozer\ParameterizationExtractor.Logic\Templates\DefaultTemplate.tt"
-this.Write(this.ToStringHelper.ToStringWithCulture(child.TableName));
+this.Write(this.ToStringHelper.ToStringWithCulture(SqlHelper.Qualify(child)));
 
         
         #line default
@@ -2135,7 +2135,7 @@ this.Write("\t\tRAISERROR(\'Record from table ");
         #line hidden
         
         #line 795 "C:\vsts\SQL Buldozer\ParameterizationExtractor.Logic\Templates\DefaultTemplate.tt"
-this.Write(this.ToStringHelper.ToStringWithCulture(child.TableName));
+this.Write(this.ToStringHelper.ToStringWithCulture(SqlHelper.Qualify(child)));
 
         
         #line default
@@ -2220,7 +2220,7 @@ this.Write(" \r\n\t\t\tfrom ");
         #line hidden
         
         #line 809 "C:\vsts\SQL Buldozer\ParameterizationExtractor.Logic\Templates\DefaultTemplate.tt"
-this.Write(this.ToStringHelper.ToStringWithCulture(child.TableName));
+this.Write(this.ToStringHelper.ToStringWithCulture(SqlHelper.Qualify(child)));
 
         
         #line default

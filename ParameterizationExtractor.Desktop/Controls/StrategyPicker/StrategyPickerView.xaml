@@ -1,0 +1,28 @@
+<UserControl x:Class="Quipu.ParameterizationExtractor.Desktop.Controls.StrategyPicker.StrategyPickerView"
+             x:Name="Root"
+             x:ClassModifier="internal"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <StackPanel>
+        <RadioButton GroupName="{Binding ElementName=Root, Path=GroupName}"
+                     Content="FKDependency  — walks both parents and children"
+                     ToolTip="Default. Follows incoming and outgoing FKs."
+                     IsChecked="{Binding StrategyChoice, ElementName=Root, Mode=TwoWay, Converter={StaticResource EnumMatchConverter}, ConverterParameter=FKDependency}"
+                     Margin="0,2"/>
+        <RadioButton GroupName="{Binding ElementName=Root, Path=GroupName}"
+                     Content="OnlyChildren  — walks down only"
+                     ToolTip="Follows outgoing FKs only."
+                     IsChecked="{Binding StrategyChoice, ElementName=Root, Mode=TwoWay, Converter={StaticResource EnumMatchConverter}, ConverterParameter=OnlyChildren}"
+                     Margin="0,2"/>
+        <RadioButton GroupName="{Binding ElementName=Root, Path=GroupName}"
+                     Content="OnlyParent  — walks up only"
+                     ToolTip="Follows incoming FKs only."
+                     IsChecked="{Binding StrategyChoice, ElementName=Root, Mode=TwoWay, Converter={StaticResource EnumMatchConverter}, ConverterParameter=OnlyParent}"
+                     Margin="0,2"/>
+        <RadioButton GroupName="{Binding ElementName=Root, Path=GroupName}"
+                     Content="OnlyOneTable  — extract just this table"
+                     ToolTip="Don't follow any FKs from here."
+                     IsChecked="{Binding StrategyChoice, ElementName=Root, Mode=TwoWay, Converter={StaticResource EnumMatchConverter}, ConverterParameter=OnlyOneTable}"
+                     Margin="0,2"/>
+    </StackPanel>
+</UserControl>

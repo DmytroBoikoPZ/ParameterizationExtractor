@@ -15,16 +15,18 @@ namespace ParameterizationExtractor.Logic.MSSQL
 {   
     public class ObjectMetaDataProvider : IObjectMetaDataProvider
     {
-        public static string sqlFKs = @"        
-SELECT  
+        public static string sqlFKs = @"
+SELECT
     fk.name as [Name],
+    OBJECT_SCHEMA_NAME(fk.parent_object_id) 'ParentSchema',
     OBJECT_NAME(fk.parent_object_id) 'ParentTable',
     c1.name 'ParentColumn',
+    OBJECT_SCHEMA_NAME(fk.referenced_object_id) 'ReferencedSchema',
     OBJECT_NAME(fk.referenced_object_id) 'ReferencedTable',
     c2.name 'ReferencedColumn'
-FROM 
+FROM
     sys.foreign_keys fk
-INNER JOIN 
+INNER JOIN
     sys.foreign_key_columns fkc ON fkc.constraint_object_id = fk.object_id
 INNER JOIN
     sys.columns c1 ON fkc.parent_column_id = c1.column_id AND fkc.parent_object_id = c1.object_id
@@ -65,8 +67,10 @@ INNER JOIN
                     var item = new PDependentTable
                     {
                         Name = r["Name"].ToString(),
+                        ParentSchema = r.Table.Columns.Contains("ParentSchema") ? (r["ParentSchema"]?.ToString() ?? string.Empty) : string.Empty,
                         ParentColumn = r["ParentColumn"].ToString(),
                         ParentTable = r["ParentTable"].ToString(),
+                        ReferencedSchema = r.Table.Columns.Contains("ReferencedSchema") ? (r["ReferencedSchema"]?.ToString() ?? string.Empty) : string.Empty,
                         ReferencedColumn = r["ReferencedColumn"].ToString(),
                         ReferencedTable = r["ReferencedTable"].ToString()
                     };

@@ -6,8 +6,10 @@ using ParameterizationExtractor.Logic.MSSQL;
 using Quipu.ParameterizationExtractor.Common;
 using Quipu.ParameterizationExtractor.Configs;
 using Quipu.ParameterizationExtractor.DSL.Connector;
+using Quipu.ParameterizationExtractor.Logic.Connectivity;
 using Quipu.ParameterizationExtractor.Logic.Interfaces;
 using Quipu.ParameterizationExtractor.Logic.MSSQL;
+using Quipu.ParameterizationExtractor.Logic.Schema;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -105,6 +107,9 @@ namespace Quipu.ParameterizationExtractor
                                                      .AddTransient<IDependencyBuilder, DependencyBuilder>() //must be transient, DependencyBuilder is no thread safe
                                                      .AddTransient<IMetaDataInitializer, MetaDataInitializer>()
                                                      .AddSingleton<IConnectionStringResolver, ConnectionStringResolver>()
+                                                     .AddSingleton<IConnectionTester, MSSQLConnectionTester>()
+                                                     .AddSingleton<IDatabaseExplorer, MSSqlDatabaseExplorer>()
+                                                     .AddSingleton<IGraphBuilder, MSSqlGraphBuilder>()
                                                 );
         }
        

@@ -354,12 +354,12 @@ foreach (var record in Items.Where(_ => _.IsStartingPoint))
 #>
 <#
 #>
-	--#region <#=record.TableName#>
+	--#region <#=SqlHelper.Qualify(record)#>
 <#
 	if (record.SqlBuildStrategy.AsIsInserts)
 	{
 #>
-	alter table <#=record.TableName#> disable trigger all
+	alter table <#=SqlHelper.Qualify(record)#> disable trigger all
 <#
     }
 				//ProcessedItems = new List<PRecord>();
@@ -367,11 +367,11 @@ foreach (var record in Items.Where(_ => _.IsStartingPoint))
 	if (record.SqlBuildStrategy.AsIsInserts)
 	{
 #>
-	alter table <#=record.TableName#> enable trigger all
+	alter table <#=SqlHelper.Qualify(record)#> enable trigger all
 <#
 	}
 #>
-	--#endregion <#=record.TableName#>
+	--#endregion <#=SqlHelper.Qualify(record)#>
 <#
             }
 #>
@@ -496,7 +496,7 @@ if object_id('dbo.Deleter', 'P') is not null
 						{
 							IfNotExists(parent.PRecord);
 							#>
-		RAISERROR('Record from table <#=parent.PRecord.TableName#> with unique values <#=SqlHelper.GetNameNormalValueString(parent.PRecord.GetUniqueFields())#> can not be found', 16, 1) 
+		RAISERROR('Record from table <#=SqlHelper.Qualify(parent.PRecord)#> with unique values <#=SqlHelper.GetNameNormalValueString(parent.PRecord.GetUniqueFields())#> can not be found', 16, 1) 
 <#+
 						}
 
@@ -548,7 +548,7 @@ if object_id('dbo.Deleter', 'P') is not null
 		if (!string.IsNullOrEmpty(table.GetUniqueSqlWhere()))
 		{
 #>
-		if not exists(select * from <#=string.Format("{0} where {1}",table.TableName,table.GetUniqueSqlWhere())#> )				
+		if not exists(select * from <#=string.Format("{0} where {1}",SqlHelper.Qualify(table),table.GetUniqueSqlWhere())#> )				
 <#+		}
 	else #> 
 	-- here should be something like if not exists, but unique columns(or values) can not be found. 
@@ -562,7 +562,7 @@ if object_id('dbo.Deleter', 'P') is not null
 	#>
 		declare <#=string.Format("{0} {1}\n",parent.GetPKVarName(), parent.PkField.MetaData.SqlType)#> 
 		select <#=parent.GetPKVarName()#> = <#=parent.PkField.FieldName#> 
-		from  <#=parent.TableName#>  
+		from  <#=SqlHelper.Qualify(parent)#>  
 		where <#=parent.GetUniqueSqlWhere()#>
 <#+
 		ProcessedItems.Add(parent);
@@ -585,13 +585,13 @@ if object_id('dbo.Deleter', 'P') is not null
 	  #>
 	declare <#+ Write(string.Format("{0}_data {1}\n",parent.GetPKVarName(), parent.PkField.MetaData.SqlType));#>
 	select  <#=parent.GetPKVarName()#>_data  = <#=parent.PkField.FieldName#> 
-	from <#=parent.TableName#>
+	from <#=SqlHelper.Qualify(parent)#>
 	where <#=parent.GetUniqueSqlWhere()#> 
 
 	declare <#=parent.GetPKVarName()#>_valbinary varbinary(512)
 	set <#=parent.GetPKVarName()#>_valbinary = cast( <#=parent.GetPKVarName()#>_data  as varbinary)
 
-	exec Deleter @TableName = '<#=parent.TableName#>', @ColumnName='<#=parent.PkField.FieldName#>', @ColumnBinValue =  <#=parent.GetPKVarName()#>_valbinary
+	exec Deleter @TableName = '<#=SqlHelper.QualifyForDeleter(parent)#>', @ColumnName='<#=parent.PkField.FieldName#>', @ColumnBinValue =  <#=parent.GetPKVarName()#>_valbinary
 
 
 <#+
@@ -609,21 +609,21 @@ if object_id('dbo.Deleter', 'P') is not null
 						if (parent.SqlBuildStrategy.IdentityInsert)
 							{
 #>
-				    SET IDENTITY_INSERT <#=parent.TableName#> ON; 
+				    SET IDENTITY_INSERT <#=SqlHelper.Qualify(parent)#> ON; 
 <#+
-								InsertValues(parent,parent.TableName); 
+								InsertValues(parent,SqlHelper.Qualify(parent)); 
 #>
 								select <#=parent.GetPKVarName()#> = <#=parent.PkField.FieldName#> 
-								from <#=parent.TableName#> 
+								from <#=SqlHelper.Qualify(parent)#> 
 								where <#=parent.PkField.FieldName#> = <#=parent.PkField.Value#> 
 
-					SET IDENTITY_INSERT <#=parent.TableName#> OFF; 
+					SET IDENTITY_INSERT <#=SqlHelper.Qualify(parent)#> OFF; 
 <#+
 							}
 					    else 
 							{
 
-						InsertValues(fields,parent.TableName);
+						InsertValues(fields,SqlHelper.Qualify(parent));
 #>
 		set <#= parent.GetPKVarName()#> = SCOPE_IDENTITY()
 <#+
@@ -637,12 +637,12 @@ if object_id('dbo.Deleter', 'P') is not null
 				#>
 				select <#=parent.GetPKVarName()#> = isnull(<#=parent.GetPKVarName()#>, 1)
 
-		<#+InsertValues(SqlHelper.InjectSqlVariable(fields,parent.GetPKVarName(),parent.PkField.FieldName),parent.TableName);				
+		<#+InsertValues(SqlHelper.InjectSqlVariable(fields,parent.GetPKVarName(),parent.PkField.FieldName),SqlHelper.Qualify(parent));				
 					}
 				}
 				else
 				{
-					InsertValues(fields,parent.TableName);
+					InsertValues(fields,SqlHelper.Qualify(parent));
 #>
 		set <#+ Write(parent.GetPKVarName());#> = <#+Write(parent.PkField.ValueToSqlString());
 				}
@@ -653,12 +653,12 @@ if object_id('dbo.Deleter', 'P') is not null
 #>
 			else 
 			begin
-				update <#=parent.TableName#> 
+				update <#=SqlHelper.Qualify(parent)#> 
 				set <#=SqlHelper.GetNameValueForUpdateString(fields.Where(_ => !_.MetaData.IsPK))#> 
 				where <#=parent.GetUniqueSqlWhere()#> 
 
 				select <#=parent.GetPKVarName()#> = <#=parent.PkField.FieldName#> 
-				from <#=parent.TableName#> 
+				from <#=SqlHelper.Qualify(parent)#> 
 				where <#=parent.GetUniqueSqlWhere()#> 
 
 			end 
@@ -689,13 +689,13 @@ if object_id('dbo.Deleter', 'P') is not null
 	  #>
 	declare <#+ Write(string.Format("{0}_data {1}\n",child.GetPKVarName(), child.PkField.MetaData.SqlType));#>
 	select <#=child.GetPKVarName()#>_data = <#=child.PkField.FieldName#> 
-	from <#=child.TableName#>
+	from <#=SqlHelper.Qualify(child)#>
 	where <#=child.GetUniqueSqlWhere()#> 
 
 	declare <#=child.GetPKVarName()#>_valbinary varbinary(512)
 	set <#=child.GetPKVarName()#>_valbinary = cast( <#=child.GetPKVarName()#>_data  as varbinary)
 
-	exec Deleter @TableName = '<#=child.TableName#>', @ColumnName='<#=child.PkField.FieldName#>', @ColumnBinValue =  <#=child.GetPKVarName()#>_valbinary
+	exec Deleter @TableName = '<#=SqlHelper.QualifyForDeleter(child)#>', @ColumnName='<#=child.PkField.FieldName#>', @ColumnBinValue =  <#=child.GetPKVarName()#>_valbinary
 
 
 <#+
@@ -724,27 +724,27 @@ if object_id('dbo.Deleter', 'P') is not null
 		#>
 		select <#=child.GetPKVarName()#> = isnull(<#=child.GetPKVarName()#>, 1)
 
-<#+InsertValues(SqlHelper.InjectSqlVariable(fields,child.GetPKVarName(),child.PkField.FieldName),child.TableName);
+<#+InsertValues(SqlHelper.InjectSqlVariable(fields,child.GetPKVarName(),child.PkField.FieldName),SqlHelper.Qualify(child));
 		}
 		else if (child.PkField.MetaData.IsIdentity)
 			{
 				if (child.SqlBuildStrategy.IdentityInsert)
 				{
 #>
-				    SET IDENTITY_INSERT <#=child.TableName#> ON; 
+				    SET IDENTITY_INSERT <#=SqlHelper.Qualify(child)#> ON; 
 <#+
-					InsertValues(child,child.TableName);  
+					InsertValues(child,SqlHelper.Qualify(child));  
 #>
 					select <#=child.GetPKVarName()#> = <#=child.PkField.FieldName#> 
-					from <#=child.TableName#> 
+					from <#=SqlHelper.Qualify(child)#> 
 					where <#=child.PkField.FieldName#> = <#=child.PkField.Value#> 
 
-					SET IDENTITY_INSERT <#=child.TableName#> OFF; 
+					SET IDENTITY_INSERT <#=SqlHelper.Qualify(child)#> OFF; 
 <#+
 				}
 				else 
 				{
-					InsertValues(fields,child.TableName); 
+					InsertValues(fields,SqlHelper.Qualify(child)); 
 #>
 <#+ if (!child.IsCompositePK) 
 	{ 
@@ -758,7 +758,7 @@ if object_id('dbo.Deleter', 'P') is not null
 			}
 			else
 			{
-				InsertValues(fields,child.TableName);#>
+				InsertValues(fields,SqlHelper.Qualify(child));#>
 <#+ if (!child.IsCompositePK) 
 	{ 
 #>
@@ -775,14 +775,14 @@ if object_id('dbo.Deleter', 'P') is not null
 <#+ if (!child.SqlBuildStrategy.ThrowExecptionIfNotExists && !child.SqlBuildStrategy.DeleteExistingRecords)
 	{#>
 		begin
-			update <#=child.TableName#> 
+			update <#=SqlHelper.Qualify(child)#> 
 			set <#=SqlHelper.GetNameValueForUpdateString(fields.Where(_ => !_.MetaData.IsPK))#> 
 			where <#=child.GetUniqueSqlWhere()#> 
 <#+ if (!child.IsCompositePK) 
 	{ 
 #>
 			select <#=child.GetPKVarName()#> = <#=child.PkField.FieldName#> 
-			from <#=child.TableName#> 
+			from <#=SqlHelper.Qualify(child)#> 
 			where <#=child.GetUniqueSqlWhere()#> 
 <#+
 	}
@@ -792,7 +792,7 @@ if object_id('dbo.Deleter', 'P') is not null
 	else 
 	{
 #>
-		RAISERROR('Record from table <#=child.TableName#> with unique values <#=SqlHelper.GetNameNormalValueString(child.GetUniqueFields())#> is already in DB, can not insert!', 16, 1) 	
+		RAISERROR('Record from table <#=SqlHelper.Qualify(child)#> with unique values <#=SqlHelper.GetNameNormalValueString(child.GetUniqueFields())#> is already in DB, can not insert!', 16, 1) 	
 <#+
 	}
 
@@ -806,7 +806,7 @@ if object_id('dbo.Deleter', 'P') is not null
 	{ 
 #>
 			select <#=child.GetPKVarName()#> = <#=child.PkField.FieldName#> 
-			from <#=child.TableName#> 
+			from <#=SqlHelper.Qualify(child)#> 
 			where <#=child.GetUniqueSqlWhere()#> 
 				<#+
 	  }

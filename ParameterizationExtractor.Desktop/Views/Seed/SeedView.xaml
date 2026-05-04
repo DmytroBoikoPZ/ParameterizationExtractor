@@ -1,0 +1,113 @@
+<UserControl x:Class="Quipu.ParameterizationExtractor.Desktop.Views.Seed.SeedView"
+             x:ClassModifier="internal"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:editor="clr-namespace:Quipu.ParameterizationExtractor.Desktop.Controls.SqlEditor"
+             xmlns:grid="clr-namespace:Quipu.ParameterizationExtractor.Desktop.Controls.RowsPreviewGrid"
+             xmlns:vm="clr-namespace:Quipu.ParameterizationExtractor.Desktop.Views.Seed">
+    <Grid Margin="12">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="220"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <DockPanel Grid.Column="0" LastChildFill="True" Margin="0,0,8,0">
+            <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,8">
+                <Button Content="+ Add" Command="{Binding AddScriptCommand}" Padding="10,4" Margin="0,0,4,0"/>
+                <Button Content="Remove" Command="{Binding RemoveSelectedScriptCommand}" Padding="10,4"/>
+            </StackPanel>
+            <ListBox ItemsSource="{Binding Scripts}" SelectedItem="{Binding SelectedScript}">
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <TextBox Text="{Binding ScriptName, UpdateSourceTrigger=LostFocus}"
+                                 BorderThickness="0"
+                                 Background="Transparent"/>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+        </DockPanel>
+
+        <ContentControl Grid.Column="1" Content="{Binding SelectedScript}">
+            <ContentControl.Resources>
+                <DataTemplate DataType="{x:Type vm:ScriptEditorViewModel}">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="240"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+
+                        <DockPanel Grid.Row="0" LastChildFill="True" Margin="0,0,0,4">
+                            <TextBlock DockPanel.Dock="Left"
+                                       Text="Root (auto-detected from query):"
+                                       Margin="0,0,8,0" VerticalAlignment="Center" Opacity="0.7"/>
+                            <ComboBox ItemsSource="{Binding DataContext.Tables, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                      SelectedItem="{Binding RootRef, Mode=TwoWay}"
+                                      IsEditable="True"
+                                      IsTextSearchEnabled="True"
+                                      TextSearch.TextPath="Name">
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Text="{Binding Schema}" Foreground="{DynamicResource MahApps.Brushes.Accent}"/>
+                                            <TextBlock Text="."/>
+                                            <TextBlock Text="{Binding Name}"/>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                            </ComboBox>
+                        </DockPanel>
+
+                        <Border Grid.Row="1" Margin="0,0,0,8"
+                                Padding="8,4"
+                                Background="#FFFFF4CE"
+                                BorderBrush="#FFE0C04C"
+                                BorderThickness="0,0,0,1"
+                                Visibility="{Binding RootMismatchHint, Converter={StaticResource StringNonEmptyToVis}}">
+                            <DockPanel LastChildFill="True">
+                                <Button DockPanel.Dock="Right"
+                                        Content="✕"
+                                        Padding="4,0"
+                                        Margin="8,0,0,0"
+                                        Background="Transparent"
+                                        BorderThickness="0"
+                                        Command="{Binding DismissRootMismatchHintCommand}"/>
+                                <TextBlock Text="{Binding RootMismatchHint}"
+                                           Foreground="#FF7A5A00"
+                                           TextWrapping="Wrap"/>
+                            </DockPanel>
+                        </Border>
+
+                        <TextBlock Grid.Row="2"
+                                   Text="Type a SELECT — the root table is detected automatically. Click Run preview to see matched rows."
+                                   FontStyle="Italic" Opacity="0.55"
+                                   Margin="0,0,0,4"/>
+
+                        <editor:SqlEditorView Grid.Row="3" Text="{Binding SeedQuery, Mode=TwoWay}" MinHeight="240"/>
+
+                        <StackPanel Grid.Row="4" Orientation="Horizontal" Margin="0,8">
+                            <Button Content="Run preview" Command="{Binding RunPreviewCommand}"
+                                    Visibility="{Binding RunPreviewCommand.IsRunning, Converter={StaticResource InverseBoolToVis}}"
+                                    Padding="14,4" Margin="0,0,8,0"/>
+                            <Button Content="Cancel" Command="{Binding RunPreviewCancelCommand}"
+                                    Visibility="{Binding RunPreviewCommand.IsRunning, Converter={StaticResource BoolToVis}}"
+                                    Padding="14,4" Margin="0,0,8,0"/>
+                            <TextBlock Text="{Binding PreviewStatus}" VerticalAlignment="Center"/>
+                        </StackPanel>
+
+                        <grid:RowsPreviewGridView Grid.Row="5" Result="{Binding PreviewResult}"/>
+                    </Grid>
+                </DataTemplate>
+            </ContentControl.Resources>
+        </ContentControl>
+
+        <TextBlock Grid.Column="1"
+                   Text="No scripts yet. Click + Add to create one."
+                   HorizontalAlignment="Center" VerticalAlignment="Center"
+                   Opacity="0.5" FontStyle="Italic"
+                   Visibility="{Binding HasScripts, Converter={StaticResource InverseBoolToVis}}"/>
+    </Grid>
+</UserControl>

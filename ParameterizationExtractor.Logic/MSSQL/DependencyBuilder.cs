@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -19,9 +19,8 @@ namespace Quipu.ParameterizationExtractor.Logic.MSSQL
         private readonly IUnitOfWorkFactory _unitOfWorkFactory;
         private readonly ISourceSchema _schema;
         private readonly ILogger _log;
-        //private readonly ISourceForScript _template;
         private readonly IExtractConfiguration _configuration;
-        
+
         public DependencyBuilder(IUnitOfWorkFactory unitOfWorkFactory, ISourceSchema schema, ILogger<DependencyBuilder> log, IExtractConfiguration configuration)
         {
             Affirm.ArgumentNotNull(unitOfWorkFactory, "unitOfWorkFactory");
@@ -42,18 +41,18 @@ namespace Quipu.ParameterizationExtractor.Logic.MSSQL
             processedTables = new HashSet<PRecord>();
             var queue = new Queue<PRecord>();
 
-            Func<string, string, Task> processTable = async (tableName, where) =>
-             {
-                 foreach (var rootTable in await GetPTables(tableName, where, cancellationToken, template))
-                 {
-                     cancellationToken.ThrowIfCancellationRequested();
-                     if (rootTable != null)
-                     {
-                         rootTable.IsStartingPoint = true;
-                         queue.Enqueue(rootTable);
-                     }
-                 }
-             };
+            Func<string, string, string, Task> processTable = async (schema, tableName, where) =>
+            {
+                foreach (var rootTable in await GetPTables(schema, tableName, where, cancellationToken, template))
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    if (rootTable != null)
+                    {
+                        rootTable.IsStartingPoint = true;
+                        queue.Enqueue(rootTable);
+                    }
+                }
+            };
 
             foreach (var root in template.RootRecords.OrderBy(_ => _.ProcessingOrder))
             {
@@ -64,11 +63,16 @@ namespace Quipu.ParameterizationExtractor.Logic.MSSQL
                     var tables = ConfigHelper.GetTablesByRawName(_schema, root.TableName);
 
                     foreach (var table in tables)
-                        await processTable(table.TableName, root.Where);
+                    {
+                        // ADR-012 — skip roots whose TablesToProcess entry is Excluded.
+                        if (IsExcluded(table.Schema ?? string.Empty, table.TableName, template)) continue;
+                        await processTable(table.Schema ?? string.Empty, table.TableName, root.Where);
+                    }
                 }
                 else
                 {
-                    await processTable(root.TableName, root.Where);
+                    if (IsExcluded(root.Schema ?? string.Empty, root.TableName, template)) continue;
+                    await processTable(root.Schema ?? string.Empty, root.TableName, root.Where);
                 }
             }
 
@@ -94,45 +98,62 @@ namespace Quipu.ParameterizationExtractor.Logic.MSSQL
             return processedTables;
         }
 
-        private ExtractStrategy GetExtractStrategy(string tableName, ISourceForScript template)
+        private ExtractStrategy GetExtractStrategy(string schema, string tableName, ISourceForScript template)
         {
-            //var fromTemplate = template.TablesToProcess.FirstOrDefault(_ => _.TableName.Equals(tableName, StringComparison.InvariantCultureIgnoreCase))?.ExtractStrategy;
-
-            var t = ConfigHelper.GetTableToExtract(tableName, template)?.ExtractStrategy;
-
+            var t = ConfigHelper.GetTableToExtract(schema, tableName, template)?.ExtractStrategy;
             return t ?? _configuration.DefaultExtractStrategy;
         }
 
-        private SqlBuildStrategy GetSqlBuildStrategy(string tableName, ISourceForScript template)
+        private SqlBuildStrategy GetSqlBuildStrategy(string schema, string tableName, ISourceForScript template)
         {
-            //var fromTemplate = template.TablesToProcess.FirstOrDefault(_ => _.TableName.Equals(tableName, StringComparison.InvariantCultureIgnoreCase))?.SqlBuildStrategy;
-
-            return ConfigHelper.GetTableToExtract(tableName, template)?.SqlBuildStrategy
+            return ConfigHelper.GetTableToExtract(schema, tableName, template)?.SqlBuildStrategy
                         ?? _configuration.DefaultSqlBuildStrategy;
         }
 
+        /// <summary>
+        /// Schema-aware FK match: an FK end matches the current record when both the table name
+        /// AND schema match (case-insensitive). Empty schemas degrade to bare-name match for
+        /// pre-schema-aware metadata sources.
+        /// </summary>
+        /// <summary>
+        /// True when the operator's <see cref="TableToExtract"/> entry for this table has
+        /// <c>Excluded == true</c> — the engine skips it from FK walking and emission (ADR-012).
+        /// </summary>
+        private static bool IsExcluded(string schema, string tableName, ISourceForScript template) =>
+            ConfigHelper.GetTableToExtract(schema, tableName, template)?.Excluded == true;
+
+        private static bool FkEndMatches(string fkSchema, string fkTable, PRecord record)
+        {
+            var schemaMatches = string.IsNullOrEmpty(fkSchema)
+                || string.IsNullOrEmpty(record.Schema)
+                || string.Equals(fkSchema, record.Schema, StringComparison.OrdinalIgnoreCase);
+            return schemaMatches && fkTable.Equals(record.TableName, StringComparison.InvariantCultureIgnoreCase);
+        }
 
         private async Task<IEnumerable<PRecord>> GetRelatedTables(PRecord table, CancellationToken cancellationToken, ISourceForScript template)
         {
             cancellationToken.ThrowIfCancellationRequested();
             var result = new List<PRecord>();
 
-            var tables = _schema.DependentTables.Where(_ => _.ParentTable.Equals(table.TableName, StringComparison.InvariantCultureIgnoreCase))
-                                    .Union(_schema.DependentTables.Where(_ => _.ReferencedTable.Equals(table.TableName, StringComparison.InvariantCultureIgnoreCase)));
+            var tables = _schema.DependentTables.Where(_ => FkEndMatches(_.ParentSchema, _.ParentTable, table))
+                                    .Union(_schema.DependentTables.Where(_ => FkEndMatches(_.ReferencedSchema, _.ReferencedTable, table)));
 
             foreach (var item in tables)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                _log.DebugFormat("parent table: {0} referenced table {1}", item.ParentTable, item.ReferencedTable);
-                var extractStrategy = GetExtractStrategy(table.TableName, template);
+                _log.DebugFormat("parent table: {0}.{1} referenced table {2}.{3}", item.ParentSchema, item.ParentTable, item.ReferencedSchema, item.ReferencedTable);
+                var extractStrategy = GetExtractStrategy(table.Schema, table.TableName, template);
 
-                Func<string, string, string, Task<IEnumerable<PRecord>>> insertTable = async (tableName, columnName, pkColumn) =>
+                Func<string, string, string, string, Task<IEnumerable<PRecord>>> insertTable = async (schema, tableName, columnName, pkColumn) =>
                 {
                     cancellationToken.ThrowIfCancellationRequested();
-                    //if (!template.TablesToProcess.Any(_ => _.TableName.Equals(tableName, StringComparison.InvariantCultureIgnoreCase)))
-                    //    return await Task.FromResult<IEnumerable<PRecord>>(null);
 
-                    if (ConfigHelper.GetTableToExtract(tableName,template) == null)
+                    var candidate = ConfigHelper.GetTableToExtract(schema, tableName, template);
+                    if (candidate == null)
+                        return await Task.FromResult<IEnumerable<PRecord>>(null);
+
+                    // ADR-012 — skip Excluded tables during the FK walk.
+                    if (candidate.Excluded)
                         return await Task.FromResult<IEnumerable<PRecord>>(null);
 
                     if (extractStrategy.DependencyToExclude.Any(_ => _.Equals(tableName, StringComparison.InvariantCultureIgnoreCase)))
@@ -143,21 +164,21 @@ namespace Quipu.ParameterizationExtractor.Logic.MSSQL
                     {
                         var str = string.Format("{0} = {1}", pkColumn, value);
 
-                        var tableExtractStrategy = GetExtractStrategy(tableName, template); // extract strategy of the child\parent table
+                        var tableExtractStrategy = GetExtractStrategy(schema, tableName, template);
 
                         if (!string.IsNullOrEmpty(tableExtractStrategy.Where))
                             str = $"{str} AND {tableExtractStrategy.Where}";
 
-                        return await GetPTables(tableName, str, cancellationToken, template);
+                        return await GetPTables(schema, tableName, str, cancellationToken, template);
                     }
 
                     return await Task.FromResult<IEnumerable<PRecord>>(null);
                 };
 
-                if (item.ParentTable.Equals(table.TableName, StringComparison.InvariantCultureIgnoreCase)
+                if (FkEndMatches(item.ParentSchema, item.ParentTable, table)
                     && extractStrategy.ProcessParents)
                 {
-                    var i = await insertTable(item.ReferencedTable, item.ParentColumn, item.ReferencedColumn);
+                    var i = await insertTable(item.ReferencedSchema, item.ReferencedTable, item.ParentColumn, item.ReferencedColumn);
                     if (i != null)
                     {
                         foreach (var parent in i)
@@ -167,10 +188,10 @@ namespace Quipu.ParameterizationExtractor.Logic.MSSQL
                         }
                     }
                 }
-                if (item.ReferencedTable.Equals(table.TableName, StringComparison.InvariantCultureIgnoreCase)
+                if (FkEndMatches(item.ReferencedSchema, item.ReferencedTable, table)
                     && extractStrategy.ProcessChildren)
                 {
-                    var i = await insertTable(item.ParentTable, item.ReferencedColumn, item.ParentColumn);
+                    var i = await insertTable(item.ParentSchema, item.ParentTable, item.ReferencedColumn, item.ParentColumn);
                     if (i != null)
                     {
                         foreach (var child in i)
@@ -186,15 +207,19 @@ namespace Quipu.ParameterizationExtractor.Logic.MSSQL
             return result;
         }
 
-        public async Task<PRecord> GetPTable(string tableName, string objectId, CancellationToken cancellationToken, ISourceForScript template)
+        public Task<PRecord> GetPTable(string tableName, string objectId, CancellationToken cancellationToken, ISourceForScript template) =>
+            GetPTable(string.Empty, tableName, objectId, cancellationToken, template);
+
+        public async Task<PRecord> GetPTable(string schema, string tableName, string objectId, CancellationToken cancellationToken, ISourceForScript template)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
             var result = new List<PRecord>();
 
-            var tableMetaData = PrepareTableMetaData(template, tableName);
+            var tableMetaData = PrepareTableMetaData(template, schema, tableName);
+            var qualifier = QualifyForSelect(tableMetaData);
 
-            var sql = string.Format("select * from {0} where [{1}] = {2}", tableName, tableMetaData.PK.FieldName, objectId);
+            var sql = string.Format("select * from {0} where [{1}] = {2}", qualifier, tableMetaData.PK.FieldName, objectId);
 
             _log.DebugFormat("GetPTable : {0}", sql);
             var processed = processedTables.FirstOrDefault(_ => _.TableName.Equals(tableName, StringComparison.InvariantCultureIgnoreCase) && _.PK == objectId);
@@ -209,19 +234,29 @@ namespace Quipu.ParameterizationExtractor.Logic.MSSQL
 
                 while (reader.Read())
                 {
-                    result.Add(new PRecord(reader, tableMetaData) { Source = sql.Trim(), ExtractStrategy = GetExtractStrategy(tableName, template), SqlBuildStrategy = GetSqlBuildStrategy(tableName, template) });
+                    result.Add(new PRecord(reader, tableMetaData)
+                    {
+                        Source = sql.Trim(),
+                        ExtractStrategy = GetExtractStrategy(schema, tableName, template),
+                        SqlBuildStrategy = GetSqlBuildStrategy(schema, tableName, template),
+                        EmissionSchema = ConfigHelper.GetTableToExtract(tableMetaData.Schema ?? string.Empty, tableName, template)?.Schema ?? string.Empty,
+                    });
                 }
             }
 
             return result.FirstOrDefault();
         }
 
-        private PTableMetadata PrepareTableMetaData(ISourceForScript template, string tableName)
+        private PTableMetadata PrepareTableMetaData(ISourceForScript template, string schema, string tableName)
         {
-            var tabMeta = _schema.GetTableMetaData(tableName);
+            // Schema-aware lookup (ADR-011). Empty schema → bare-name with one-or-throw policy.
+            var tabMeta = _schema.ResolveTable(schema, tableName)
+                          ?? throw new InvalidOperationException(
+                              string.IsNullOrEmpty(schema)
+                                  ? $"Table '{tableName}' was not found in source metadata."
+                                  : $"Table '{schema}.{tableName}' was not found in source metadata.");
 
-            //var fromTemplate = template.TablesToProcess.FirstOrDefault(_ => _.TableName.Equals(tableName, StringComparison.InvariantCultureIgnoreCase) && _.UniqueColumns != null && _.UniqueColumns.Any());
-            var fromTemplate = ConfigHelper.GetTableToExtract(tableName, template);
+            var fromTemplate = ConfigHelper.GetTableToExtract(tabMeta.Schema ?? string.Empty, tableName, template);
 
             if (fromTemplate != null && fromTemplate.UniqueColumns != null && fromTemplate.UniqueColumns.Any())
                 tabMeta.UniqueColumnsCollection = new List<string>(fromTemplate.UniqueColumns);
@@ -229,11 +264,18 @@ namespace Quipu.ParameterizationExtractor.Logic.MSSQL
             return tabMeta;
         }
 
-        public async Task<IEnumerable<PRecord>> GetPTables(string tableName, string where, CancellationToken cancellationToken, ISourceForScript template)
+        public Task<IEnumerable<PRecord>> GetPTables(string tableName, string where, CancellationToken cancellationToken, ISourceForScript template) =>
+            GetPTables(string.Empty, tableName, where, cancellationToken, template);
+
+        public async Task<IEnumerable<PRecord>> GetPTables(string schema, string tableName, string where, CancellationToken cancellationToken, ISourceForScript template)
         {
             cancellationToken.ThrowIfCancellationRequested();
             var result = new List<PRecord>();
-            var sql = string.Format("select * from {0} ", tableName);
+
+            var tableMeta = PrepareTableMetaData(template, schema, tableName);
+            var qualifier = QualifyForSelect(tableMeta);
+
+            var sql = string.Format("select * from {0} ", qualifier);
             if (!string.IsNullOrEmpty(where))
                 sql = string.Format("{0} where {1} ", sql, where);
 
@@ -247,12 +289,29 @@ namespace Quipu.ParameterizationExtractor.Logic.MSSQL
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    var record = new PRecord(reader, PrepareTableMetaData(template, tableName)) { Source = sql.Trim(), ExtractStrategy = GetExtractStrategy(tableName, template), SqlBuildStrategy = GetSqlBuildStrategy(tableName, template) };
+                    var record = new PRecord(reader, tableMeta)
+                    {
+                        Source = sql.Trim(),
+                        ExtractStrategy = GetExtractStrategy(schema, tableName, template),
+                        SqlBuildStrategy = GetSqlBuildStrategy(schema, tableName, template),
+                        EmissionSchema = ConfigHelper.GetTableToExtract(tableMeta.Schema ?? string.Empty, tableName, template)?.Schema ?? string.Empty,
+                    };
                     var processed = processedTables.FirstOrDefault(_ => _.Equals(record));
                     result.Add(processed ?? record);
                 }
-            }        
+            }
             return result;
-        }        
+        }
+
+        /// <summary>
+        /// SELECT identifier qualifier — emits <c>[Schema].[Table]</c> when schema is non-empty,
+        /// else bare <c>[Table]</c> (today's behaviour for legacy single-schema setups).
+        /// </summary>
+        private static string QualifyForSelect(PTableMetadata meta)
+        {
+            return string.IsNullOrEmpty(meta.Schema)
+                ? string.Format("[{0}]", meta.TableName)
+                : string.Format("[{0}].[{1}]", meta.Schema, meta.TableName);
+        }
     }
 }

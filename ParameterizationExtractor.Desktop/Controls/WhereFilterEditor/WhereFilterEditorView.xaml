@@ -1,0 +1,10 @@
+<UserControl x:Class="Quipu.ParameterizationExtractor.Desktop.Controls.WhereFilterEditor.WhereFilterEditorView"
+             x:Name="Root"
+             x:ClassModifier="internal"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:editor="clr-namespace:Quipu.ParameterizationExtractor.Desktop.Controls.SqlEditor">
+    <editor:SqlEditorView IsSingleLine="True"
+                          Text="{Binding Text, ElementName=Root, Mode=TwoWay}"
+                          MinHeight="32"/>
+</UserControl>

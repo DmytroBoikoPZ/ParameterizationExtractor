@@ -13,10 +13,18 @@ namespace Quipu.ParameterizationExtractor.Logic.Interfaces
         IEnumerable<PTableMetadata> Tables { get; }
         IEnumerable<PDependentTable> DependentTables { get; }
         PTableMetadata GetTableMetaData(string tableName);
+
+        /// <summary>
+        /// Resolves a table by (Schema, Name). Empty <paramref name="schema"/> uses the
+        /// bare-name-matching policy from ADR-011 (1 → match, 0 → null, 2+ → throw
+        /// <see cref="MSSQL.AmbiguousTableException"/>). Returns null when not found.
+        /// </summary>
+        PTableMetadata ResolveTable(string schema, string tableName);
+
         bool WasInit { get; }
         Task Init(CancellationToken cancellationToken);
         string Database { get; }
-        string DataSource { get; }       
+        string DataSource { get; }
     }
 
     public interface IConnectionStringResolver

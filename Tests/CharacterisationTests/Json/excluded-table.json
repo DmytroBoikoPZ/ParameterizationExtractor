@@ -1,0 +1,23 @@
+{
+  "scripts": [
+    {
+      "scriptName": "excluded-table",
+      "rootRecords": [
+        { "tableName": "TherapyPrograms", "where": "Id = 904" }
+      ],
+      "tablesToProcess": [
+        {
+          "tableName": "TherapyPrograms",
+          "extractStrategy": { "$kind": "OnlyChildren" },
+          "sqlBuildStrategy": {}
+        },
+        {
+          "tableName": "TherapyProgramItems",
+          "excluded": true,
+          "extractStrategy": { "$kind": "OnlyChildren" },
+          "sqlBuildStrategy": {}
+        }
+      ]
+    }
+  ]
+}

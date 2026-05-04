@@ -30,6 +30,8 @@ namespace Quipu.ParameterizationExtractor.Logic.Model
             throw new NotImplementedException();
         }
 
+        public PTableMetadata ResolveTable(string schema, string tableName) => null;
+
         public Task Init(CancellationToken cancellationToken)
         {
             throw new NotImplementedException();

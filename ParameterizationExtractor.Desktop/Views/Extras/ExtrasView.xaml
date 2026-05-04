@@ -1,0 +1,90 @@
+<UserControl x:Class="Quipu.ParameterizationExtractor.Desktop.Views.Extras.ExtrasView"
+             x:ClassModifier="internal"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:strategy="clr-namespace:Quipu.ParameterizationExtractor.Desktop.Controls.StrategyPicker"
+             xmlns:whereEditor="clr-namespace:Quipu.ParameterizationExtractor.Desktop.Controls.WhereFilterEditor">
+    <Grid Margin="12">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0"
+                   Text="Standalone tables (extracted outside the FK graph)"
+                   FontWeight="SemiBold" Margin="0,0,0,8"/>
+
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+            <ItemsControl ItemsSource="{Binding StandaloneTables}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Border BorderBrush="#22000000" BorderThickness="0,0,0,1" Padding="0,6">
+                            <StackPanel>
+                                <DockPanel LastChildFill="True">
+                                    <Button DockPanel.Dock="Right"
+                                            Content="✕"
+                                            Command="{Binding RemoveCommand}"
+                                            ToolTip="Remove from extraction"
+                                            Padding="6,2" Margin="8,0,0,0"
+                                            Background="Transparent" BorderThickness="0"/>
+                                    <Button DockPanel.Dock="Right"
+                                            Content="Edit"
+                                            Command="{Binding ToggleExpandCommand}"
+                                            Padding="10,2" Margin="0,0,0,0"
+                                            Background="Transparent" BorderThickness="0"/>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="220"/>
+                                            <ColumnDefinition Width="140"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Grid.Column="0"
+                                                   Text="{Binding Display}"
+                                                   FontWeight="Bold"
+                                                   VerticalAlignment="Center"/>
+                                        <TextBlock Grid.Column="1"
+                                                   Text="{Binding StrategyChip}"
+                                                   Opacity="0.7"
+                                                   VerticalAlignment="Center"/>
+                                        <TextBlock Grid.Column="2"
+                                                   Text="{Binding Where}"
+                                                   Opacity="0.55"
+                                                   FontStyle="Italic"
+                                                   VerticalAlignment="Center"
+                                                   TextTrimming="CharacterEllipsis"/>
+                                    </Grid>
+                                </DockPanel>
+
+                                <StackPanel Margin="16,8,0,0"
+                                            Visibility="{Binding IsExpanded, Converter={StaticResource BoolToVis}}">
+                                    <TextBlock Text="Strategy" FontWeight="SemiBold" Margin="0,0,0,4"/>
+                                    <strategy:StrategyPickerView StrategyChoice="{Binding StrategyChoice, Mode=TwoWay}"
+                                                                 Margin="0,0,0,8"/>
+                                    <TextBlock Text="Where filter" FontWeight="SemiBold" Margin="0,0,0,4"/>
+                                    <whereEditor:WhereFilterEditorView Text="{Binding Where, Mode=TwoWay}"
+                                                                       Margin="0,0,0,8"/>
+                                    <CheckBox IsChecked="{Binding Excluded, Mode=TwoWay}"
+                                              Content="Exclude from extraction"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
+
+        <DockPanel Grid.Row="2" LastChildFill="True" Margin="0,12,0,0">
+            <Button DockPanel.Dock="Left"
+                    Content="+ Add table…"
+                    Command="{Binding AddStandaloneTableCommand}"
+                    Padding="12,6"/>
+            <TextBlock Text="{Binding EmptyHint}"
+                       Margin="12,0,0,0"
+                       FontStyle="Italic" Opacity="0.55"
+                       VerticalAlignment="Center"
+                       TextWrapping="Wrap"
+                       Visibility="{Binding EmptyHint, Converter={StaticResource StringNonEmptyToVis}}"/>
+        </DockPanel>
+    </Grid>
+</UserControl>

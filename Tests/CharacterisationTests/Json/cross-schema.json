@@ -1,0 +1,24 @@
+{
+  "scripts": [
+    {
+      "scriptName": "cross-schema",
+      "rootRecords": [
+        { "schema": "dbo", "tableName": "SchemaTestChild", "where": "Id = 100" }
+      ],
+      "tablesToProcess": [
+        {
+          "schema": "dbo",
+          "tableName": "SchemaTestChild",
+          "extractStrategy": { "$kind": "OnlyParent", "processParents": true },
+          "sqlBuildStrategy": {}
+        },
+        {
+          "schema": "audit",
+          "tableName": "SchemaTestParent",
+          "extractStrategy": { "$kind": "OnlyOneTable" },
+          "sqlBuildStrategy": {}
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "scripts": [
+    {
+      "scriptName": "where-filter-during-child-walk",
+      "rootRecords": [
+        { "tableName": "TherapyPrograms", "where": "Id = 904" }
+      ],
+      "tablesToProcess": [
+        {
+          "tableName": "TherapyPrograms",
+          "extractStrategy": { "$kind": "OnlyChildren" },
+          "sqlBuildStrategy": {}
+        },
+        {
+          "tableName": "TherapyProgramItems",
+          "extractStrategy": { "$kind": "OnlyChildren", "where": "IsCanceled = 0" },
+          "sqlBuildStrategy": {}
+        }
+      ]
+    }
+  ]
+}

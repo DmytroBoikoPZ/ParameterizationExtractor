@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
 
@@ -13,6 +14,13 @@ namespace Quipu.ParameterizationExtractor.Logic.Model
     [XmlInclude(typeof(OnlyParentExtractStrategy))]
     [XmlInclude(typeof(OnlyChildrenExtractStrategy))]
     [XmlInclude(typeof(OnlyOneTableExtractStrategy))]
+    [JsonPolymorphic(TypeDiscriminatorPropertyName = "$kind",
+                     IgnoreUnrecognizedTypeDiscriminators = false,
+                     UnknownDerivedTypeHandling = JsonUnknownDerivedTypeHandling.FailSerialization)]
+    [JsonDerivedType(typeof(FKDependencyExtractStrategy), "FKDependency")]
+    [JsonDerivedType(typeof(OnlyOneTableExtractStrategy), "OnlyOneTable")]
+    [JsonDerivedType(typeof(OnlyChildrenExtractStrategy), "OnlyChildren")]
+    [JsonDerivedType(typeof(OnlyParentExtractStrategy),  "OnlyParent")]
     public class ExtractStrategy : IAmDSLFriendly
     {
         public ExtractStrategy()

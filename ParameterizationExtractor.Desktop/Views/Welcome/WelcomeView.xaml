@@ -1,0 +1,63 @@
+<UserControl x:Class="Quipu.ParameterizationExtractor.Desktop.Views.Welcome.WelcomeView"
+             x:ClassModifier="internal"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <Grid Background="{DynamicResource MahApps.Brushes.ThemeBackground}">
+    <Border MaxWidth="640"
+            HorizontalAlignment="Center"
+            VerticalAlignment="Center"
+            Padding="32"
+            BorderThickness="1"
+            BorderBrush="#22000000"
+            CornerRadius="6"
+            Background="{DynamicResource MahApps.Brushes.ThemeBackground}">
+      <StackPanel>
+        <TextBlock Text="No workspace open"
+                   FontSize="20"
+                   FontWeight="SemiBold"
+                   Margin="0,0,0,16"/>
+
+        <StackPanel Orientation="Horizontal" Margin="0,0,0,24">
+          <Button Content="New workspace…"
+                  Command="{Binding NewWorkspaceCommand}"
+                  IsEnabled="{Binding IsNewWorkspaceEnabled}"
+                  ToolTip="{Binding NewWorkspaceTooltip}"
+                  Padding="14,6"
+                  Margin="0,0,8,0"/>
+          <Button Content="Open workspace…"
+                  Command="{Binding OpenCommand}"
+                  Padding="14,6"/>
+        </StackPanel>
+
+        <TextBlock Text="Recent:"
+                   Opacity="0.6"
+                   Margin="0,0,0,4"/>
+
+        <ItemsControl ItemsSource="{Binding Recents}"
+                      Visibility="{Binding HasRecents, Converter={StaticResource BoolToVis}}">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate>
+              <Button Command="{Binding DataContext.OpenRecentCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                      CommandParameter="{Binding Path}"
+                      ToolTip="{Binding Path}"
+                      HorizontalContentAlignment="Left"
+                      Background="Transparent"
+                      BorderThickness="0"
+                      Padding="0,4"
+                      Cursor="Hand">
+                <TextBlock Text="{Binding Path}"
+                           TextTrimming="CharacterEllipsis"
+                           Foreground="{DynamicResource MahApps.Brushes.Accent}"/>
+              </Button>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+
+        <TextBlock Text="(empty)"
+                   Visibility="{Binding HasRecents, Converter={StaticResource InverseBoolToVis}}"
+                   Opacity="0.5"
+                   FontStyle="Italic"/>
+      </StackPanel>
+    </Border>
+  </Grid>
+</UserControl>

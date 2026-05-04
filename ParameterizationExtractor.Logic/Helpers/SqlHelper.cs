@@ -9,6 +9,35 @@ namespace Quipu.ParameterizationExtractor.Logic.Helpers
 {
     public static class SqlHelper
     {
+        /// <summary>
+        /// Schema-aware T-SQL identifier (ADR-011). Returns <c>[Schema].[Table]</c> when
+        /// <paramref name="emissionSchema"/> is non-empty (operator-supplied via config),
+        /// or bare <paramref name="tableName"/> otherwise — preserving today's emission for legacy configs.
+        /// </summary>
+        public static string Qualify(string emissionSchema, string tableName)
+        {
+            return string.IsNullOrEmpty(emissionSchema)
+                ? tableName
+                : string.Format("[{0}].[{1}]", emissionSchema, tableName);
+        }
+
+        /// <summary>PRecord overload — reads <see cref="PRecord.EmissionSchema"/> + <see cref="PRecord.TableName"/>.</summary>
+        public static string Qualify(PRecord record) => Qualify(record.EmissionSchema, record.TableName);
+
+        /// <summary>
+        /// Schema-aware identifier for the Deleter SP's <c>@TableName</c> parameter (which expects
+        /// <c>schema.table</c> with no brackets). Falls back to bare <paramref name="tableName"/> for legacy.
+        /// </summary>
+        public static string QualifyForDeleter(string emissionSchema, string tableName)
+        {
+            return string.IsNullOrEmpty(emissionSchema)
+                ? tableName
+                : string.Format("{0}.{1}", emissionSchema, tableName);
+        }
+
+        /// <summary>PRecord overload.</summary>
+        public static string QualifyForDeleter(PRecord record) => QualifyForDeleter(record.EmissionSchema, record.TableName);
+
         public static IEnumerable<PField> NotIdentityFields(PRecord table)
         {
             // all not identity fields filtered by SqlBuildStrategy.FieldsToExclude

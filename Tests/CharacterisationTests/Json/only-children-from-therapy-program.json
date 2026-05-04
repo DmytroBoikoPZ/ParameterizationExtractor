@@ -1,0 +1,17 @@
+{
+  "scripts": [
+    {
+      "scriptName": "only-children-from-therapy-program",
+      "rootRecords": [
+        { "tableName": "TherapyPrograms", "where": "Id = 904" }
+      ],
+      "tablesToProcess": [
+        {
+          "tableName": "TherapyPrograms",
+          "extractStrategy": { "$kind": "OnlyChildren" },
+          "sqlBuildStrategy": {}
+        }
+      ]
+    }
+  ]
+}

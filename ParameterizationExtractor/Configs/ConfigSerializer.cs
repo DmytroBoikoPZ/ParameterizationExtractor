@@ -1,5 +1,6 @@
 ﻿using Quipu.ParameterizationExtractor.Common;
 using Quipu.ParameterizationExtractor.Logic.Configs;
+using Quipu.ParameterizationExtractor.Logic.Configs.Json;
 using Quipu.ParameterizationExtractor.Logic.Interfaces;
 using Quipu.ParameterizationExtractor.Logic.Model;
 using System;
@@ -55,6 +56,10 @@ namespace Quipu.ParameterizationExtractor.Configs
                 var text = File.ReadAllText(path);
 
                 return _dslConnector.Parse(text);
+            }
+            else if (fi.Extension == ".json")
+            {
+                return JsonPackageReader.Read(path);
             }
 
             throw new NotSupportedException("files '*{0}' are not suported! ".FormIt(fi.Extension));

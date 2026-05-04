@@ -57,6 +57,28 @@ Module-specific rules:
 
 - The canonical surface for emitting `INSERT`/`UPDATE` text is the T4 template `ParameterizationExtractor.Logic/Templates/DefaultTemplate.tt`, driven by the SQL builder in `Logic`.
 - No new ad-hoc string-concat paths for emitting SQL. Extend the template + builder. See `adr/004-t4-sql-generation.md`.
+- **Schema-aware identifiers** — every table-naming model class (`TableToExtract`, `RecordsToExtract`, `PTableMetadata`, `PDependentTable`) carries an optional `Schema` field (default empty / null). Empty Schema means "use SQL's default-schema fallback" via `MSSQLSourceSchema.ResolveTable`'s bare-name policy: 1 match → that table; 0 → not-found; 2+ → `AmbiguousTableException`. Discovered metadata always carries a concrete Schema; emission reads from the *config* `TableToExtract.Schema` (preserved as `PRecord.EmissionSchema`), so legacy bare-name configs continue to emit bare `[Table]`. See [`adr/011-engine-schema-awareness.md`](../../adr/011-engine-schema-awareness.md). Lookup helper: `MSSQLSourceSchema.ResolveTable(schema, name)` or `Logic/MSSQL/TableResolver.cs` for unit-test work. SQL emission helpers: `SqlHelper.Qualify(record)` / `SqlHelper.QualifyForDeleter(record)`.
+- **Don't compare table names without a schema-aware path.** `Tables.First(t => t.TableName == ...)` silently picks one match and misses the ambiguity case — use `ResolveTable`. Recipe-level rule, not a CLAUDE.md tripwire (single-module concern).
+
+---
+
+## Extraction config inputs
+
+The engine consumes two POCO families: `Package` (per-extraction script bundle) and `GlobalExtractConfiguration` (db-wide defaults). Both accept multiple input formats:
+
+| Format | Type produced | Reader | Status |
+|--------|---------------|--------|--------|
+| `*.xml` | `Package` | `XmlSerializer` (in `ConfigSerializer.GetPackage`) | Legacy, supported indefinitely |
+| `*.bc` | `Package` | F# DSL via `IDSLConnector` | Frozen ([adr/005-freeze-fsharp-dsl.md](../../adr/005-freeze-fsharp-dsl.md)) — no new feature work |
+| `*.json` | `Package` | `JsonPackageReader` in `Logic.Configs.Json` | Canonical for new workspaces ([adr/009-workspace-format.md](../../adr/009-workspace-format.md)) |
+| `ExtractConfig.xml` | `GlobalExtractConfiguration` | `XmlSerializer` (hardcoded path in `ConfigSerializer.GetGlobalConfig`) | Legacy CLI default |
+| `*.json` | `GlobalExtractConfiguration` | `JsonGlobalConfigReader` in `Logic.Configs.Json` | New ([adr/009-workspace-format.md](../../adr/009-workspace-format.md)) |
+
+`ConfigSerializer.GetPackage(path)` dispatches by file extension. The JSON shape is documented at [`docs/methodology/workspace-format.md`](./workspace-format.md). Polymorphism (`ExtractStrategy` variants) uses `[JsonPolymorphic]` with `$kind` discriminator.
+
+The desktop's `.bws` workspace files are a **desktop-only wrapper** — the engine never reads `.bws` directly. The Desktop's `IWorkspaceStore` extracts the embedded `global` and `package` subtrees and hands them to the engine readers above.
+
+XML and JSON paths are characterisation-tested against the same goldens — proven byte-equal in `Tests/CharacterisationTests/CharacterisationTests.cs` (`Programmatic` and `Json` loader cases run side-by-side).
 
 ---
 

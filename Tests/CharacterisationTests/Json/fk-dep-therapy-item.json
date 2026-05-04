@@ -1,0 +1,17 @@
+{
+  "scripts": [
+    {
+      "scriptName": "fk-dep-therapy-item",
+      "rootRecords": [
+        { "tableName": "TherapyProgramItems", "where": "Id = 1039" }
+      ],
+      "tablesToProcess": [
+        {
+          "tableName": "TherapyProgramItems",
+          "extractStrategy": { "$kind": "FKDependency" },
+          "sqlBuildStrategy": {}
+        }
+      ]
+    }
+  ]
+}
